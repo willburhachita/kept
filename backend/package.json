@@ -1,0 +1,24 @@
+{
+  "name": "@kept/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Kept backend on Convex: auth, verified contract engine, PayPal rails, AI pipeline, agent mandates, REST API and remote MCP.",
+  "scripts": {
+    "dev": "convex dev",
+    "deploy": "convex deploy",
+    "codegen": "convex codegen",
+    "typecheck": "tsc -p convex/tsconfig.json --noEmit",
+    "setup:keys": "node scripts/setup-keys.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0",
+    "@auth/core": "^0.41.1",
+    "@convex-dev/auth": "^0.0.96",
+    "@kept/core": "0.1.0",
+    "convex": "^1.48.0"
+  },
+  "devDependencies": {
+    "convex-test": "^0.0.66"
+  }
+}

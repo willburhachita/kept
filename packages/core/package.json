@@ -1,0 +1,45 @@
+{
+  "name": "@kept/core",
+  "version": "0.1.0",
+  "description": "Provable payment promises: a tiny contract language, an exhaustive model checker, a deterministic interpreter, fee math and signed, hash-chained receipts.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@noble/curves": "^2.4.0",
+    "@noble/hashes": "^2.4.0"
+  },
+  "keywords": [
+    "paypal",
+    "escrow",
+    "payments",
+    "formal-verification",
+    "model-checking",
+    "smart-contracts",
+    "ai-agents",
+    "agentic-commerce"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

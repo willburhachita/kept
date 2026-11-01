@@ -1,0 +1,30 @@
+{
+  "name": "kept-monorepo",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/core",
+    "packages/sdk",
+    "packages/mcp",
+    "backend"
+  ],
+  "scripts": {
+    "build": "npm run build -w @kept/core && npm run build -w @kept/sdk && npm run build -w @kept/mcp",
+    "test": "vitest run",
+    "typecheck": "npm run build && npm run typecheck -w @kept/backend",
+    "dev": "npm run build -w @kept/core && npm run dev -w @kept/backend",
+    "rename": "node scripts/rename.mjs"
+  },
+  "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
+    "@types/node": "^24.0.0",
+    "typescript": "~5.9.3",
+    "vitest": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "optionalDependencies": {
+    "@rolldown/binding-win32-x64-msvc": "1.2.16"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "@kept/mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Kept: verify payment contracts offline, explain them, check proof packs, and let AI agents spend inside a mandate.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "kept-mcp": "dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@kept/core": "0.1.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "paypal",
+    "ai-agents",
+    "agentic-commerce",
+    "formal-verification"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
