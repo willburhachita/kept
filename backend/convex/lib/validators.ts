@@ -200,6 +200,8 @@ export const fundingV = v.object({
   converting: v.optional(v.boolean()),
   /** Escrow funding whose order capture is still PENDING at PayPal: activation waits for COMPLETED. */
   pendingCapture: v.optional(v.object({ captureId: v.string(), amountCents: v.number(), currency: v.string(), at: v.number() })),
+  /** Checkouts closed before they completed (last 10). Money PayPal still takes on one is returned, never kept. */
+  abandonedOrderIds: v.optional(v.array(v.string())),
 });
 
 /** Logical (what the contract decided) and execution (what PayPal confirmed) money. */

@@ -227,7 +227,7 @@ per minute) and rate limit `api:${keyId}` with `LIMITS.apiRequest`.
 ids; parse ids with `ctx.runQuery`-free validation: treat unknown ids as 404):
 ```
 GET    /v1/me                                   -> {userId, email, displayName, payoutEmail}
-POST   /v1/verify                               {ir, feeBps?} -> {valid, report|issues}   (no key required; pure)
+POST   /v1/verify                               {ir, feeBps?} -> {valid, report|issues}   (API key required; rate limited per account)
 POST   /v1/contracts                            {prompt, role, counterpartyEmail?, ir?, compile?} -> {contractId, inviteUrl, inviteToken}
 GET    /v1/contracts                            -> {data: [...listAs]}
 GET    /v1/contracts/{id}                       -> getAs view

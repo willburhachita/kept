@@ -2,17 +2,21 @@
  * Inbound PayPal webhooks (already signature-verified by routes/paypal.ts).
  * Idempotent by event id. Webhooks never move money on their own: they
  * confirm what our outbox already asked for, release payouts parked on
- * PENDING captures, or freeze a stream when PayPal reports a problem.
+ * PENDING captures, start escrow contracts whose PENDING funding cleared,
+ * or freeze a stream when PayPal reports a problem.
  */
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalAction, internalMutation, type MutationCtx } from "./_generated/server";
-import { releaseDeferredPayout } from "./effects";
-import { freezeContract } from "./engine";
+import { activatePendingEscrow, freezeStream, releaseDeferredPayout } from "./effects";
 import { appendJournal } from "./lib/journal";
 import { notify, notifyStaff } from "./lib/notify";
+import { findEffectByRef } from "./lib/outbox";
 
 type Resource = Record<string, any>;
+
+/** What ingest tells routes/paypal.ts. `retry`: answer 503 so PayPal redelivers; the event was not recorded. */
+export type IngestResult = { duplicate: boolean; status: "processed" | "ignored" | "failed" | "retry"; retry?: boolean };
 
 /** Our invoice/sender ids are `${stream}-${seq}`; custom_id is the stream itself. */
 function streamOf(r: Resource): string | null {
@@ -30,24 +34,10 @@ function streamOf(r: Resource): string | null {
   return null;
 }
 
-async function freezeStream(ctx: MutationCtx, stream: string, reason: string): Promise<boolean> {
-  const cid = ctx.db.normalizeId("contracts", stream);
-  if (cid) {
-    const c = await ctx.db.get(cid);
-    if (!c) return false;
-    await freezeContract(ctx, c, reason, "paypal");
-    return true;
-  }
-  const mid = ctx.db.normalizeId("mandates", stream);
-  const m = mid ? await ctx.db.get(mid) : null;
-  if (!m) return false;
-  if (m.status !== "frozen") {
-    await ctx.db.patch(m._id, { status: "frozen", frozen: { reason, at: Date.now(), by: "paypal" }, updatedAt: Date.now() });
-    await appendJournal(ctx, m._id, "paypal", "mandate.frozen", { reason });
-    await notify(ctx, m.ownerId, { kind: "mandate.frozen", title: "Mandate frozen", body: reason, stream: m._id });
-    await notifyStaff(ctx, { kind: "mandate.frozen", title: "Mandate needs an arbiter", body: reason, stream: m._id });
-  }
-  return true;
+/** The PayPal order a capture belongs to (capture resources carry it in supplementary_data). */
+function orderIdOf(r: Resource): string | null {
+  const id = r?.supplementary_data?.related_ids?.order_id;
+  return typeof id === "string" && id.length > 0 ? id : null;
 }
 
 async function knownStream(ctx: MutationCtx, stream: string | null): Promise<boolean> {
@@ -58,9 +48,32 @@ async function knownStream(ctx: MutationCtx, stream: string | null): Promise<boo
   return mid ? (await ctx.db.get(mid)) !== null : false;
 }
 
+/**
+ * PAYMENT.CAPTURE.COMPLETED: start the escrow contract whose PENDING funding
+ * capture cleared, or release payouts parked on a PENDING capture. "retry"
+ * when a stream we know does not have the capture yet: the webhook beat our
+ * own write (effect completion or activation), so PayPal should redeliver.
+ */
+async function captureCompleted(ctx: MutationCtx, captureId: string, orderId: string | null, stream: string | null, known: boolean): Promise<"processed" | "ignored" | "retry"> {
+  if (orderId) {
+    const c = await ctx.db
+      .query("contracts")
+      .withIndex("by_order", (q) => q.eq("funding.orderId", orderId))
+      .first();
+    if (c?.funding?.pendingCapture?.captureId === captureId) return (await activatePendingEscrow(ctx, c._id, captureId)) ? "processed" : "ignored";
+  }
+  if (!known || !stream) return "ignored";
+  // Same check by the stream the capture names (custom_id), for payloads without related ids.
+  if (await activatePendingEscrow(ctx, stream, captureId)) return "processed";
+  if (await releaseDeferredPayout(ctx, stream, captureId)) return "processed";
+  // A stray capture (returnStrayFunds) is refunded, never recorded on the stream.
+  if (await findEffectByRef(ctx, stream, `stray:${captureId}`)) return "ignored";
+  return "retry";
+}
+
 export const ingest = internalMutation({
   args: { eventId: v.string(), type: v.string(), resource: v.any() },
-  handler: async (ctx, { eventId, type, resource }) => {
+  handler: async (ctx, { eventId, type, resource }): Promise<IngestResult> => {
     const seen = await ctx.db.query("webhookEvents").withIndex("by_event", (q) => q.eq("eventId", eventId)).unique();
     if (seen) return { duplicate: true, status: seen.status };
     const r = (resource ?? {}) as Resource;
@@ -77,9 +90,14 @@ export const ingest = internalMutation({
           status = "processed";
         }
         break;
-      case "PAYMENT.CAPTURE.COMPLETED":
-        if (known && stream && resourceId) status = (await releaseDeferredPayout(ctx, stream, resourceId)) ? "processed" : "ignored";
+      case "PAYMENT.CAPTURE.COMPLETED": {
+        if (!resourceId) break;
+        const outcome = await captureCompleted(ctx, resourceId, orderIdOf(r), stream, known);
+        // Nothing was written: leave the event unrecorded so the redelivery is not deduped.
+        if (outcome === "retry") return { duplicate: false, status: "retry", retry: true };
+        status = outcome;
         break;
+      }
       case "PAYMENT.CAPTURE.DENIED":
       case "PAYMENT.CAPTURE.REVERSED":
       case "CUSTOMER.DISPUTE.CREATED": {

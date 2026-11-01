@@ -36,7 +36,7 @@ function parseMaybeJson(v: unknown): unknown {
 }
 
 export const LANGUAGE_GUIDE = `A contract has: deadlines (hours after funding), evidence slots (deliverables with acceptance criteria), guarantees (promises: party + minimum amount + premise literals) and clauses (trigger + guard + money actions).
-Triggers: activated | accepted(E) | rejected(E) | deadline(D). Literals: submitted(E), submitted_before(E,D), accepted(E), rejected(E), deadline_passed(D), each optionally negated; a guard is an AND.
+Triggers: activated | accepted(E) | rejected(E) | deadline(D). Literals: submitted(E), submitted_before(E,D), accepted(E), rejected(E), deadline_passed(D), each optionally negated; a guard is an AND. Promise premises (guarantees[].when) may not use deadline_passed: describe how the evidence ended up instead.
 Clauses fire at most once, in order. Actions: release (to payee) / refund (to funder), fixed cents or "remaining". The contract closes when nothing is held; submissions close at the last deadline.
 Rules of thumb: "on time" = submitted_before, never "accepted before"; refund at a deadline only if NOT SUBMITTED; always handle rejected(E); use a join pair when one payment depends on two reviews.
 The verifier explores every ordering and proves: conservation, no stranded funds, every promise, PayPal timing (authorize mode: everything inside 28 days), and warns about cut-off reviews.`;

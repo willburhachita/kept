@@ -6,14 +6,17 @@
     "packages/core",
     "packages/sdk",
     "packages/mcp",
-    "backend"
+    "backend",
+    "web"
   ],
   "scripts": {
     "build": "npm run build -w @kept/core && npm run build -w @kept/sdk && npm run build -w @kept/mcp",
     "test": "vitest run",
     "typecheck": "npm run build && npm run typecheck -w @kept/backend",
     "dev": "npm run build -w @kept/core && npm run dev -w @kept/backend",
-    "rename": "node scripts/rename.mjs"
+    "rename": "node scripts/rename.mjs",
+    "dev:web": "npm run build -w @kept/core && npm run dev -w @kept/web",
+    "build:web": "npm run build -w @kept/web"
   },
   "devDependencies": {
     "@edge-runtime/vm": "^5.0.0",

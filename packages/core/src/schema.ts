@@ -6,7 +6,7 @@
  * enforced afterwards by the validators in ir.ts and mandate.ts, which are
  * the source of truth.
  */
-import { ACTION_OPS, EVIDENCE_KINDS, FUNDING_MODES, PARTIES, PREDICATE_KINDS, SUPPORTED_CURRENCIES, TRIGGER_KINDS } from "./ir.js";
+import { ACTION_OPS, EVIDENCE_KINDS, FUNDING_MODES, PARTIES, PREDICATE_KINDS, PREMISE_KINDS, SUPPORTED_CURRENCIES, TRIGGER_KINDS } from "./ir.js";
 
 type Schema = Record<string, unknown>;
 
@@ -32,6 +32,17 @@ export const LITERAL_SCHEMA = obj(
   "A fact about evidence or time. A list of literals means all of them must hold (AND).",
 );
 
+/** A literal in a promise's premise: no deadline_passed (a contract can close before its deadlines pass). */
+const PREMISE_SCHEMA = obj(
+  {
+    kind: enumOf(PREMISE_KINDS, "submitted | submitted_before | accepted | rejected"),
+    evidence: nullableString("Evidence id (always required)."),
+    deadline: nullableString("Deadline id. Required for submitted_before, otherwise null."),
+    negate: bool("true to negate the fact"),
+  },
+  "A fact about how the evidence ended up. A list of facts means all of them must hold (AND).",
+);
+
 const DEADLINE_SCHEMA = obj({
   id: str("snake_case id, unique across deadlines and evidence"),
   label: str("Short human label, e.g. 'Delivery deadline'"),
@@ -51,7 +62,10 @@ const GUARANTEE_SCHEMA = obj({
   label: str("The promise in a few plain words, e.g. 'Designer gets $300 for on-time delivery'"),
   party: enumOf(PARTIES, "Who the promise protects"),
   atLeastCents: int("Minimum total the party receives (payee) or gets back (funder) on covered outcomes"),
-  when: arr(LITERAL_SCHEMA, "Premise: which outcomes the promise covers (AND). Empty = every outcome."),
+  when: arr(
+    PREMISE_SCHEMA,
+    "Premise: which outcomes the promise covers (AND). Empty = every outcome. Describe the outcome, never a deadline passing: 'nothing arrived on time' is NOT submitted_before(E, D).",
+  ),
 });
 
 export const SPEC_OUTPUT_SCHEMA = obj({

@@ -38,17 +38,22 @@ function matches(events: string[], type: string): boolean {
   return events.some((e) => e === "*" || e === type || (e.endsWith(".*") && type.startsWith(e.slice(0, -1))));
 }
 
+/** A user's endpoints that still receive events. Deleted ones keep their row (disabledAt), so read past them. */
+async function liveEndpoints(ctx: MutationCtx, userId: Id<"users">) {
+  const rows = await ctx.db
+    .query("webhookEndpoints")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .take(100);
+  return rows.filter((ep) => !ep.disabledAt);
+}
+
 /** Called by appendJournal in the same transaction as the journal entry. */
 export async function enqueueOutboundWebhooks(ctx: MutationCtx, e: { journalId: Id<"journal">; stream: string; type: string }): Promise<void> {
   const users = await participantsOf(ctx, e.stream);
   const now = Date.now();
   for (const userId of users) {
-    const endpoints = await ctx.db
-      .query("webhookEndpoints")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .take(MAX_ENDPOINTS);
-    for (const ep of endpoints) {
-      if (ep.disabledAt || !matches(ep.events, e.type)) continue;
+    for (const ep of await liveEndpoints(ctx, userId)) {
+      if (!matches(ep.events, e.type)) continue;
       const deliveryId = await ctx.db.insert("webhookDeliveries", {
         endpointId: ep._id,
         userId,
@@ -74,8 +79,10 @@ export function assertWebhookUrl(raw: string): string {
     fail("INVALID_ARGUMENT", "Webhook URL is not a valid URL.");
   }
   if (u.protocol !== "https:") fail("INVALID_ARGUMENT", "Webhook URL must use https.");
-  const host = u.hostname.toLowerCase();
+  // "localhost." is localhost: check the name without its trailing dots.
+  const host = u.hostname.toLowerCase().replace(/\.+$/, "");
   const privateHost =
+    !host ||
     host === "localhost" ||
     host.endsWith(".localhost") ||
     host.endsWith(".local") ||
@@ -92,8 +99,7 @@ export const _insertEndpoint = internalMutation({
   args: { userId: v.id("users"), url: v.string(), secret: v.string(), events: v.array(v.string()) },
   handler: async (ctx, a) => {
     await rateLimit(ctx, `whcreate:${a.userId}`, LIMITS.secretIssue);
-    const existing = await ctx.db.query("webhookEndpoints").withIndex("by_user", (q) => q.eq("userId", a.userId)).take(MAX_ENDPOINTS + 1);
-    if (existing.filter((e) => !e.disabledAt).length >= MAX_ENDPOINTS) fail("INVALID_STATE", `At most ${MAX_ENDPOINTS} webhook endpoints.`);
+    if ((await liveEndpoints(ctx, a.userId)).length >= MAX_ENDPOINTS) fail("INVALID_STATE", `At most ${MAX_ENDPOINTS} webhook endpoints.`);
     return await ctx.db.insert("webhookEndpoints", { userId: a.userId, url: a.url, secret: a.secret, events: a.events, failures: 0, createdAt: Date.now() });
   },
 });
@@ -208,10 +214,19 @@ export const deliver = internalAction({
   handler: async (ctx, { deliveryId }) => {
     const p = await ctx.runQuery(internal.outbound._deliveryPayload, { deliveryId });
     if (!p) return;
+    // The endpoint may predate a stricter guard; re-check before every send.
+    try {
+      assertWebhookUrl(p.url);
+    } catch {
+      await ctx.runMutation(internal.outbound._result, { deliveryId, ok: false, error: "blocked address" });
+      return;
+    }
     const ts = Math.floor(Date.now() / 1000).toString();
     const sig = toBase64(hmacSha256(secretKey(p.secret), `${deliveryId}.${ts}.${p.body}`));
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 10_000);
+    // lastError is shown to the endpoint owner: generic labels only, never response bodies or exception text.
+    let outcome: { ok: boolean; status?: number; error?: string };
     try {
       const res = await fetch(p.url, {
         method: "POST",
@@ -220,12 +235,13 @@ export const deliver = internalAction({
         redirect: "manual",
         signal: controller.signal,
       });
-      await ctx.runMutation(internal.outbound._result, { deliveryId, ok: res.status >= 200 && res.status < 300, status: res.status, error: res.ok ? undefined : `HTTP ${res.status}` });
-    } catch (e) {
-      await ctx.runMutation(internal.outbound._result, { deliveryId, ok: false, error: e instanceof Error ? e.message.slice(0, 200) : "network error" });
+      outcome = { ok: res.ok, status: res.status, error: res.ok ? undefined : `HTTP ${res.status}` };
+    } catch {
+      outcome = { ok: false, error: controller.signal.aborted ? "timeout" : "network error" };
     } finally {
       clearTimeout(timer);
     }
+    await ctx.runMutation(internal.outbound._result, { deliveryId, ...outcome });
   },
 });
 
@@ -238,6 +254,11 @@ export const deliverDue = internalMutation({
       .query("webhookDeliveries")
       .withIndex("by_status_next", (q) => q.eq("status", "pending").lt("nextAttemptAt", now - 120_000))
       .take(100);
-    for (const d of due) await ctx.scheduler.runAfter(0, internal.outbound.deliver, { deliveryId: d._id });
+    for (const d of due) {
+      // A disabled endpoint never gets its delivery; close it so it stops coming back here.
+      const ep = await ctx.db.get(d.endpointId);
+      if (!ep || ep.disabledAt) await ctx.db.patch(d._id, { status: "failed", lastError: "endpoint disabled", updatedAt: now });
+      else await ctx.scheduler.runAfter(0, internal.outbound.deliver, { deliveryId: d._id });
+    }
   },
 });

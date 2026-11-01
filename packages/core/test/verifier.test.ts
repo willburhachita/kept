@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  CLAUSES_OUTPUT_SCHEMA,
+  EXAMPLES,
   EventRejected,
+  SPEC_OUTPUT_SCHEMA,
   initialState,
   irHash,
   logoFixed,
@@ -10,6 +13,7 @@ import {
   renderContract,
   step,
   validateContract,
+  validateSpec,
   verify,
   verifyContract,
   violationsForRepair,
@@ -161,6 +165,45 @@ describe("validation", () => {
   it("verifyContract reports validation issues instead of throwing", () => {
     const r = verifyContract({ title: "x" });
     expect(r.valid).toBe(false);
+  });
+
+  it("every reference contract is valid", () => {
+    for (const ir of Object.values(EXAMPLES)) expect(validateContract(ir)).toMatchObject({ ok: true });
+  });
+
+  it("rejects promises that depend on a deadline passing, negated or not", () => {
+    // Paying everything at activation closes the contract before "delivery" passes. Judged on that
+    // early ending, "refund if the deadline passes with nothing submitted" would look kept.
+    const raw = clone(logoFixed);
+    raw.clauses = [
+      { id: "prepay", label: "Pay everything up front", trigger: { on: "activated", evidence: null, deadline: null }, guard: [], actions: [{ op: "release", cents: null, remaining: true }] },
+    ];
+    raw.guarantees[0].when.push({ kind: "deadline_passed", evidence: null, deadline: "delivery", negate: true });
+    raw.guarantees[1].when = [
+      { kind: "deadline_passed", evidence: null, deadline: "delivery", negate: false },
+      { kind: "submitted", evidence: "final_svg", deadline: null, negate: true },
+    ];
+    const r = verifyContract(raw);
+    expect(r.valid).toBe(false);
+    const premises = r.issues.filter((i) => i.code === "deadline_premise");
+    expect(premises.map((i) => i.path)).toEqual(["$.guarantees[0].when[2]", "$.guarantees[1].when[0]"]);
+    expect(premises.every((i) => i.severity === "error" && i.message.startsWith("Promises cannot depend on a deadline passing"))).toBe(true);
+    const { clauses: _clauses, ...spec } = raw;
+    expect(validateSpec(spec).ok).toBe(false);
+  });
+
+  it("still allows deadline_passed in rule guards", () => {
+    const raw = clone(logoFixed);
+    raw.clauses[2].guard.push({ kind: "deadline_passed", evidence: null, deadline: "delivery", negate: false });
+    expect(validateContract(raw).ok).toBe(true);
+  });
+
+  it("keeps deadline_passed out of the promise schema the model writes against", () => {
+    type Node = { properties: Record<string, Node>; items: Node; enum: string[] };
+    const premiseKinds = (SPEC_OUTPUT_SCHEMA as unknown as Node).properties.guarantees.items.properties.when.items.properties.kind.enum;
+    const guardKinds = (CLAUSES_OUTPUT_SCHEMA as unknown as Node).properties.clauses.items.properties.guard.items.properties.kind.enum;
+    expect(premiseKinds).toEqual(["submitted", "submitted_before", "accepted", "rejected"]);
+    expect(guardKinds).toContain("deadline_passed");
   });
 
   it("hashes are independent of key order", () => {

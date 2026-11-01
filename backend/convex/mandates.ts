@@ -25,6 +25,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { action, internalAction, internalMutation, internalQuery, mutation, query, type ActionCtx, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { aiConfigured, callStructured } from "./ai/claude";
 import { MANDATE_DRAFT_SYSTEM, mandateDraftRequest } from "./ai/screener";
+import { returnStrayFunds } from "./effects";
 import { rethrowRail } from "./funding";
 import { getProfile, isStaff, maskEmail, requireUserId } from "./lib/authz";
 import { env } from "./lib/env";
@@ -78,14 +79,20 @@ export function policyLines(p: MandatePolicy): string[] {
 // Draft + create
 // ---------------------------------------------------------------------------
 
+export const _draftLimit = internalMutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }) => rateLimit(ctx, `mandateDraft:${userId}`, LIMITS.compile),
+});
+
 /** Draft a policy from plain English with Claude. Nothing is stored. */
 export const draftFromPrompt = action({
   args: { prompt: v.string() },
   handler: async (ctx, { prompt }) => {
-    await requireUserId(ctx);
+    const userId = await requireUserId(ctx);
     const text = prompt.trim();
     if (!text || text.length > 2000) fail("INVALID_ARGUMENT", "Describe the mandate in 1-2000 characters.");
     if (!aiConfigured()) fail("CONFIG_MISSING", "AI is not configured (ANTHROPIC_API_KEY).");
+    await ctx.runMutation(internal.mandates._draftLimit, { userId });
     const r = await callStructured<Omit<MandatePolicy, "version"> & { assumptions: string[] }>({
       system: MANDATE_DRAFT_SYSTEM,
       content: mandateDraftRequest(text),
@@ -288,6 +295,9 @@ type BeginOrder =
   | { kind: "existing"; orderId: string; approveUrl: string }
   | { kind: "new"; amountCents: number; currency: string; title: string; requestId: string };
 
+/** `returned`: PayPal authorized after the mandate stopped waiting, and the hold is being voided. */
+type FundConfirmed = { status: string; returned?: boolean };
+
 export const _beginOrder = internalMutation({
   args: { userId: v.id("users"), mandateId: v.id("mandates") },
   handler: async (ctx, { userId, mandateId }): Promise<BeginOrder> => {
@@ -341,13 +351,32 @@ export const _byOrder = internalQuery({
   },
 });
 
+/**
+ * PayPal authorized the order. Activates a mandate that is waiting for it; an
+ * authorization that arrives after the mandate stopped waiting (revoked while
+ * the PayPal call was in flight, or a replaced checkout) is voided instead.
+ */
 export const _activate = internalMutation({
   args: { mandateId: v.id("mandates"), orderId: v.string(), authorizationId: v.string(), amountCents: v.number(), currency: v.string(), expiresAt: v.optional(v.number()) },
-  handler: async (ctx, a) => {
+  handler: async (ctx, a): Promise<FundConfirmed> => {
     const m = await ctx.db.get(a.mandateId);
     if (!m) fail("NOT_FOUND", "Mandate not found.");
-    if (m.status === "active" || m.status === "closing" || m.status === "closed") return { status: m.status };
-    if (m.status !== "funding" || !m.funding || m.funding.orderId !== a.orderId) fail("CONFLICT", "PayPal order does not belong to this mandate.");
+    const isCurrent = m.funding?.orderId === a.orderId;
+    const isAbandoned = m.funding?.abandonedOrderIds?.includes(a.orderId) ?? false;
+    // Never touch money for an order this mandate did not create.
+    if (!m.funding || (!isCurrent && !isAbandoned)) fail("CONFLICT", "PayPal order does not belong to this mandate.");
+    // This authorization already funds the mandate (a duplicate confirm): it is the main hold, never stray.
+    if (isCurrent && m.funding.authorizationId === a.authorizationId) return { status: m.status };
+    if (!isCurrent || m.status !== "funding") {
+      await returnStrayFunds(ctx, {
+        stream: m._id,
+        streamKind: "mandate",
+        authorizationId: a.authorizationId,
+        amountCents: a.amountCents,
+        reason: isCurrent ? `Mandate is ${m.status}` : "This checkout was replaced",
+      });
+      return { status: m.status, returned: true };
+    }
     const now = Date.now();
     const authExpires = a.expiresAt ?? now + PAYPAL_RULES.authorizationValidHours * HOUR;
     const funding = {
@@ -396,7 +425,7 @@ async function fundStartFlow(ctx: ActionCtx, userId: Id<"users">, mandateId: Id<
   return { orderId: order.orderId, approveUrl: order.approveUrl };
 }
 
-async function fundConfirmFlow(ctx: ActionCtx, userId: Id<"users"> | null, mandateId: Id<"mandates">): Promise<{ status: string }> {
+async function fundConfirmFlow(ctx: ActionCtx, userId: Id<"users"> | null, mandateId: Id<"mandates">): Promise<FundConfirmed> {
   const info: { status: string; orderId: string | null } = await ctx.runQuery(internal.mandates._orderInfo, { mandateId, userId: userId ?? undefined });
   if (info.status !== "funding") return { status: info.status };
   if (!info.orderId) fail("INVALID_STATE", "No PayPal order to confirm.");
@@ -422,7 +451,7 @@ export const fundStart = action({
 });
 export const fundConfirm = action({
   args: { mandateId: v.id("mandates") },
-  handler: async (ctx, { mandateId }): Promise<{ status: string }> => fundConfirmFlow(ctx, await requireUserId(ctx), mandateId),
+  handler: async (ctx, { mandateId }): Promise<FundConfirmed> => fundConfirmFlow(ctx, await requireUserId(ctx), mandateId),
 });
 export const fundStartAs = internalAction({
   args: { userId: v.id("users"), mandateId: v.id("mandates") },
@@ -430,7 +459,7 @@ export const fundStartAs = internalAction({
 });
 export const fundConfirmAs = internalAction({
   args: { userId: v.id("users"), mandateId: v.id("mandates") },
-  handler: async (ctx, { userId, mandateId }): Promise<{ status: string }> => fundConfirmFlow(ctx, userId, mandateId),
+  handler: async (ctx, { userId, mandateId }): Promise<FundConfirmed> => fundConfirmFlow(ctx, userId, mandateId),
 });
 
 export const confirmFromWebhook = internalAction({
@@ -544,7 +573,7 @@ export async function executeSpend(ctx: MutationCtx, m: Mandate, spend: Doc<"spe
 export async function closeMandate(ctx: MutationCtx, m: Mandate, reason: string, actor: Actor): Promise<void> {
   if (["closing", "closed", "revoked"].includes(m.status)) return;
   const now = Date.now();
-  const open = await ctx.db.query("spends").withIndex("by_mandate", (q) => q.eq("mandateId", m._id)).take(500);
+  const open = await ctx.db.query("spends").withIndex("by_mandate", (q) => q.eq("mandateId", m._id)).order("desc").take(500);
   let released = 0;
   for (const s of open) {
     if (s.status === "needs_approval" || s.status === "screening") {

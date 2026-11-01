@@ -235,9 +235,9 @@ export class Kept {
     return this.http.request<{ userId: string; email: string; displayName: string; payoutEmail: string | null; role: string }>("GET", "/v1/me");
   }
 
-  /** Stateless verification (no key needed server-side). Also available offline via @kept/core. */
+  /** Stateless verification (rate limited per account). Also available offline, without a key, via `verify` from @kept/core. */
   verify(ir: unknown, feeBps?: number) {
-    return this.http.request<{ valid: true; report: VerificationReport } | { valid: false; issues: unknown[] }>("POST", "/v1/verify", { ir, feeBps }, false);
+    return this.http.request<{ valid: true; report: VerificationReport } | { valid: false; issues: unknown[] }>("POST", "/v1/verify", { ir, feeBps });
   }
 
   readonly contracts = {
@@ -250,7 +250,10 @@ export class Kept {
     setTerms: (id: string, ir: ContractIR) => this.http.request<{ irHash: string }>("PUT", `/v1/contracts/${enc(id)}/terms`, { ir }),
     approve: (id: string, termsHash: string) => this.http.request<{ status: string }>("POST", `/v1/contracts/${enc(id)}/approve`, { termsHash }),
     fund: (id: string) => this.http.request<{ orderId: string; approveUrl: string }>("POST", `/v1/contracts/${enc(id)}/fund`),
-    confirmFunding: (id: string) => this.http.request<{ status: string }>("POST", `/v1/contracts/${enc(id)}/fund/confirm`),
+    /** `pending`: PayPal is still clearing the payment; `returned`: the payment arrived but the contract could not start, so it is being returned. */
+    confirmFunding: (id: string) => this.http.request<{ status: string; pending?: boolean; returned?: boolean }>("POST", `/v1/contracts/${enc(id)}/fund/confirm`),
+    /** Abandon a PayPal checkout the funder never approved, then fund again or cancel. */
+    resetFunding: (id: string) => this.http.request<{ status: string }>("POST", `/v1/contracts/${enc(id)}/fund/reset`),
     cancel: (id: string) => this.http.request<Json>("POST", `/v1/contracts/${enc(id)}/cancel`),
     journal: async (id: string, limit = 200) => (await this.http.request<{ data: JournalEntry[] }>("GET", `/v1/contracts/${enc(id)}/journal?limit=${limit}`)).data,
     proof: (id: string) => this.http.request<Json>("GET", `/v1/contracts/${enc(id)}/proof`),
@@ -284,7 +287,7 @@ export class Kept {
     list: async () => (await this.http.request<{ data: Json[] }>("GET", "/v1/mandates")).data,
     get: (id: string) => this.http.request<Json>("GET", `/v1/mandates/${enc(id)}`),
     fund: (id: string) => this.http.request<{ orderId: string; approveUrl: string }>("POST", `/v1/mandates/${enc(id)}/fund`),
-    confirmFunding: (id: string) => this.http.request<{ status: string }>("POST", `/v1/mandates/${enc(id)}/fund/confirm`),
+    confirmFunding: (id: string) => this.http.request<{ status: string; returned?: boolean }>("POST", `/v1/mandates/${enc(id)}/fund/confirm`),
     issueToken: (id: string, label: string, expiresInHours?: number) =>
       this.http.request<{ tokenId: string; token: string; prefix: string; expiresAt: number; mcpUrl: string; agentApiUrl: string }>("POST", `/v1/mandates/${enc(id)}/tokens`, { label, expiresInHours }),
     revoke: (id: string) => this.http.request<{ status: string }>("POST", `/v1/mandates/${enc(id)}/revoke`),

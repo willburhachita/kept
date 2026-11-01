@@ -27,6 +27,10 @@ await kept.contracts.confirmFunding(contractId);                  // after PayPa
 await kept.contracts.uploadEvidenceFile(contractId, "final_svg", file, "image/svg+xml", "logo.svg"); // as the payee
 ```
 
+`confirmFunding` returns `{ status }`, plus `pending: true` while PayPal is still clearing the payment (the contract starts once it clears; confirm again to check) or `returned: true` when the payment arrived but the contract could no longer start, so the money is being returned. If the funder leaves PayPal without approving, `await kept.contracts.resetFunding(contractId)` abandons that checkout so you can `fund` again or `cancel`.
+
+`kept.verify(ir, feeBps?)` runs the exhaustive verifier on any contract JSON with your API key (rate limited per account). `verify` from `@kept/core` does the same offline.
+
 ## Agents
 
 ```ts

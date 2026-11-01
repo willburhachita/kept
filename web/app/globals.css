@@ -1,0 +1,194 @@
+@import "tailwindcss";
+
+/*
+ * Kept design tokens. Editorial monochrome (Inter, tight tracking, white cards on
+ * a soft grey canvas, black statement blocks) with PayPal's blue as the only accent.
+ */
+@theme {
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --color-canvas: #f5f5f5;
+  --color-surface: #ffffff;
+  --color-sunken: #fafafa;
+  --color-ink: #0a0a0a;
+  --color-ink-2: #212121;
+  --color-muted: #7a7a7a;
+  --color-faint: #a3a3a3;
+  --color-line: #e5e5e5;
+  --color-line-2: #d4d4d4;
+
+  --color-pp: #0066f5;
+  --color-pp-deep: #002991;
+  --color-pp-sky: #60cdff;
+  --color-pp-tint: rgb(5 55 130 / 0.08);
+  --color-pp-gold: #ffc439;
+
+  --color-ok: #0f7b4a;
+  --color-ok-tint: #e6f4ec;
+  --color-warn: #9a5800;
+  --color-warn-tint: #fcf0dc;
+  --color-bad: #c22f0f;
+  --color-bad-tint: #fbe8e3;
+
+  --radius-card: 1.25rem;
+  --radius-field: 0.875rem;
+
+  --tracking-tightest: -0.05em;
+  --tracking-display: -0.04em;
+  --tracking-snug: -0.03em;
+  --tracking-body: -0.018em;
+  --tracking-caps: 0.01em;
+
+  --shadow-float: 0 1px 0 rgb(0 0 0 / 0.03), 0 18px 40px -20px rgb(0 0 0 / 0.28);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.04), 0 24px 48px -24px rgb(0 0 0 / 0.22);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-rise: rise 0.8s var(--ease-out-soft) both;
+  --animate-fade: fade 0.6s ease both;
+  --animate-pulse-dot: pulse-dot 1.6s ease-in-out infinite;
+  --animate-marquee: marquee 48s linear infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes shimmer {
+    from { background-position: -200% 0; }
+    to { background-position: 200% 0; }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    letter-spacing: var(--tracking-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4, h5 {
+    letter-spacing: var(--tracking-display);
+    font-weight: 500;
+    text-wrap: balance;
+  }
+  p { text-wrap: pretty; }
+  code, kbd, pre, samp {
+    font-family: var(--font-mono);
+    letter-spacing: 0;
+  }
+  ::selection { background: var(--color-ink); color: #fff; }
+  :focus-visible {
+    outline: 2px solid var(--color-pp);
+    outline-offset: 2px;
+  }
+  button, [role="button"] { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  dialog::backdrop { background: rgb(10 10 10 / 0.45); backdrop-filter: blur(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Money, counters and hashes line up. */
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* The floating nav and overlays. */
+@utility glass {
+  background: rgb(255 255 255 / 0.74);
+  backdrop-filter: saturate(1.8) blur(18px);
+  -webkit-backdrop-filter: saturate(1.8) blur(18px);
+}
+@utility glass-dark {
+  background: rgb(10 10 10 / 0.55);
+  backdrop-filter: saturate(1.4) blur(16px);
+  -webkit-backdrop-filter: saturate(1.4) blur(16px);
+}
+
+/* "(01) · How it works" section labels. */
+@utility eyebrow {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  color: var(--color-muted);
+}
+
+/* Skeleton shimmer. */
+@utility skeleton {
+  background: linear-gradient(90deg, #ececec 0%, #f6f6f6 40%, #ececec 80%);
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+  border-radius: 0.75rem;
+}
+
+/* Markdown (docs, assumptions, AI explanations). */
+.prose-kept {
+  color: var(--color-ink-2);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+.prose-kept > * + * { margin-top: 1rem; }
+.prose-kept h1 { font-size: 2.5rem; line-height: 1.1; color: var(--color-ink); margin-bottom: 1.25rem; }
+.prose-kept h2 { font-size: 1.625rem; line-height: 1.25; color: var(--color-ink); margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--color-line); scroll-margin-top: 6rem; }
+.prose-kept h3 { font-size: 1.25rem; line-height: 1.35; color: var(--color-ink); margin-top: 2rem; scroll-margin-top: 6rem; }
+.prose-kept h4 { font-size: 1rem; font-weight: 600; color: var(--color-ink); margin-top: 1.5rem; }
+.prose-kept a { color: var(--color-pp); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.prose-kept a:hover { color: var(--color-pp-deep); }
+.prose-kept strong { color: var(--color-ink); font-weight: 600; }
+.prose-kept ul, .prose-kept ol { padding-left: 1.25rem; }
+.prose-kept ul { list-style: disc; }
+.prose-kept ol { list-style: decimal; }
+.prose-kept li + li { margin-top: 0.35rem; }
+.prose-kept li::marker { color: var(--color-faint); }
+.prose-kept blockquote { border-left: 2px solid var(--color-ink); padding: 0.25rem 0 0.25rem 1rem; color: var(--color-ink); font-size: 1.0625rem; }
+.prose-kept hr { border: 0; border-top: 1px solid var(--color-line); margin: 2.5rem 0; }
+.prose-kept :not(pre) > code { font-size: 0.85em; background: var(--color-pp-tint); color: var(--color-pp-deep); padding: 0.12em 0.4em; border-radius: 0.4em; }
+.prose-kept pre { background: #0b0b0c; color: #e9e9ea; border-radius: 1rem; padding: 1.1rem 1.25rem; overflow-x: auto; font-size: 0.85rem; line-height: 1.65; }
+.prose-kept table { width: 100%; border-collapse: collapse; font-size: 0.9rem; display: block; overflow-x: auto; }
+.prose-kept th { text-align: left; font-weight: 500; color: var(--color-muted); border-bottom: 1px solid var(--color-line-2); padding: 0.6rem 0.75rem 0.6rem 0; white-space: nowrap; }
+.prose-kept td { border-bottom: 1px solid var(--color-line); padding: 0.6rem 0.75rem 0.6rem 0; vertical-align: top; }
+.prose-kept img { border-radius: 1rem; }
+
+/* sugar-high code colours (dark code blocks). */
+:root {
+  --sh-class: #7dd3fc;
+  --sh-identifier: #e9e9ea;
+  --sh-sign: #8b8b90;
+  --sh-property: #93c5fd;
+  --sh-entity: #60cdff;
+  --sh-jsxliterals: #c4b5fd;
+  --sh-string: #a7f3d0;
+  --sh-keyword: #f9a8d4;
+  --sh-comment: #6b6b70;
+}

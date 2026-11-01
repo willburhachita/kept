@@ -37,6 +37,8 @@ export function registerPaypalWebhooks(http: HttpRouter): void {
       }
       if (!verified) return json(400, { error: "signature verification failed" });
       const r = await ctx.runMutation(internal.webhooks.ingest, { eventId: event.id, type: event.event_type, resource: event.resource ?? {} });
+      // The event got ahead of our own write and was not recorded: a non-2xx answer makes PayPal redeliver it later.
+      if (r.retry) return json(503, { received: false, retry: true });
       return json(200, { received: true, ...r });
     }),
   });

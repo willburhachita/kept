@@ -32,6 +32,9 @@ export const PREDICATE_KINDS = [
 ] as const;
 export type PredicateKind = (typeof PREDICATE_KINDS)[number];
 
+/** Kinds a promise's premise may use: everything except deadline_passed (see readPremise). */
+export const PREMISE_KINDS: readonly PredicateKind[] = PREDICATE_KINDS.filter((k) => k !== "deadline_passed");
+
 /** A (possibly negated) fact about evidence or time. Guards are ANDs of literals. */
 export interface Literal {
   kind: PredicateKind;
@@ -281,6 +284,21 @@ function readLiterals(c: Collector, obj: Record<string, unknown>, key: string, p
   return readArray(c, obj, key, path, LIMITS.maxLiteralsPerGuard).map((l, i) => readLiteral(c, l, `${path}.${key}[${i}]`, refs));
 }
 
+/**
+ * A promise's premise. Promises are judged on how the contract ends, and a
+ * contract that closes early never sees its later deadlines pass, so a
+ * deadline_passed premise could make a broken promise look kept.
+ */
+function readPremise(c: Collector, obj: Record<string, unknown>, path: string, refs: RefSets): Literal[] {
+  const when = readLiterals(c, obj, "when", path, refs);
+  when.forEach((l, i) => {
+    if (l.kind === "deadline_passed") {
+      c.error(`${path}.when[${i}]`, "deadline_premise", "Promises cannot depend on a deadline passing; describe the outcome instead (e.g. evidence accepted / rejected / submitted before a deadline)");
+    }
+  });
+  return when;
+}
+
 function readSpecInto(c: Collector, raw: unknown): ContractSpec & { refs: RefSets } {
   const path = "$";
   const empty: RefSets = { deadlines: new Set(), evidence: new Set() };
@@ -357,7 +375,7 @@ function readSpecInto(c: Collector, raw: unknown): ContractSpec & { refs: RefSet
       label: readString(c, g, "label", p, { max: LIMITS.maxLabel }),
       party: readEnum(c, g, "party", p, PARTIES),
       atLeastCents: readInt(c, g, "atLeastCents", p, 1, Math.max(1, principalCents)),
-      when: readLiterals(c, g, "when", p, refs),
+      when: readPremise(c, g, p, refs),
     };
   });
 

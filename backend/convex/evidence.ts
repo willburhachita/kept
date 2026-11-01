@@ -11,7 +11,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { internalAction, internalMutation, internalQuery, mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { aiConfigured, callStructured, type UserBlock } from "./ai/claude";
 import { buildExaminerContent, EXAMINER_SYSTEM, textSubmission } from "./ai/examiner";
-import { applyEvent } from "./engine";
+import { applyEvent, applyOverdueDeadlines } from "./engine";
 import { loadContract, readableContract, requireRole, requireUserId } from "./lib/authz";
 import { fail } from "./lib/errors";
 import { actorUser, appendJournal, type Actor } from "./lib/journal";
@@ -19,6 +19,8 @@ import { notify, notifyStaff } from "./lib/notify";
 import { LIMITS, rateLimit } from "./lib/rateLimit";
 
 const HOUR = 3_600_000;
+/** An AI check that has not answered by then goes to the funder. */
+const EXAMINER_TIMEOUT_MS = 30 * 60_000;
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_TEXT = 20_000;
@@ -92,6 +94,14 @@ function passesAutoAccept(v: Verdict, threshold: number): boolean {
   return v.overall === "pass" && v.confidence >= threshold && v.criteria.every((c) => c.met) && !v.suspectedManipulation;
 }
 
+/** Nothing about evidence changes while the contract is frozen. */
+function assertNotFrozen(c: Doc<"contracts">) {
+  if (c.status === "frozen") fail("INVALID_STATE", "The contract is frozen; an arbiter must resume it first.");
+}
+
+/** A timed window is open until it ends; like the timers, a missing end never closes it. */
+const windowOpen = (endsAt: number | undefined, now = Date.now()) => (endsAt ?? Infinity) > now;
+
 /**
  * Final decision. Feeds the state machine when the contract is still active;
  * if the contract has already settled the decision is recorded as moot.
@@ -100,10 +110,8 @@ function passesAutoAccept(v: Verdict, threshold: number): boolean {
  */
 async function decide(ctx: MutationCtx, ev: EvidenceDoc, outcome: "accepted" | "rejected", actor: Actor, reason: string, isTimer = false): Promise<boolean> {
   const c = await loadContract(ctx, ev.contractId);
-  if (c.status === "frozen") {
-    if (isTimer) return false;
-    fail("INVALID_STATE", "The contract is frozen; an arbiter must resume it first.");
-  }
+  if (c.status === "frozen" && isTimer) return false;
+  assertNotFrozen(c);
   const now = Date.now();
   await ctx.db.patch(ev._id, { status: outcome, decision: { by: actor, outcome, reason: reason.slice(0, MAX_REASON), at: now } });
   const live = c.status === "active";
@@ -123,6 +131,15 @@ async function toArbitration(ctx: MutationCtx, ev: EvidenceDoc, patch: Partial<E
   await notifyStaff(ctx, { kind: "arbitration.needed", title: "Evidence needs an arbiter", body: why.slice(0, 200), stream: ev.contractId });
 }
 
+/** Hand evidence to the funder; without a decision within the SLA it escalates to an arbiter. */
+async function toFunderReview(ctx: MutationCtx, ev: EvidenceDoc, c: Doc<"contracts">, patch: Partial<EvidenceDoc>, body: string) {
+  const due = Date.now() + SLA.funderReviewHours * HOUR;
+  await ctx.db.patch(ev._id, { ...patch, status: "awaiting_funder", funderDecisionDueAt: due });
+  await ctx.scheduler.runAt(due, internal.evidence.escalate, { evidenceId: ev._id });
+  const label = c.ir?.evidence.find((s) => s.id === ev.slotId)?.label ?? ev.slotId;
+  await notify(ctx, c.funderId, { kind: "evidence.review_needed", title: `Review “${label}”`, body: body.slice(0, 200), stream: c._id });
+}
+
 async function loadEvidence(ctx: QueryCtx | MutationCtx, id: Id<"evidence">): Promise<EvidenceDoc> {
   const ev = await ctx.db.get(id);
   if (!ev) fail("NOT_FOUND", "Evidence not found.");
@@ -136,6 +153,7 @@ async function loadEvidence(ctx: QueryCtx | MutationCtx, id: Id<"evidence">): Pr
 async function uploadUrlFlow(ctx: MutationCtx, userId: Id<"users">, contractId: Id<"contracts">) {
   const c = await loadContract(ctx, contractId);
   requireRole(c, userId, ["payee"]);
+  assertNotFrozen(c);
   if (c.status !== "active") fail("INVALID_STATE", `Contract is ${c.status}, not active.`);
   await rateLimit(ctx, `upload:${userId}`, LIMITS.evidenceUpload);
   return { uploadUrl: await ctx.storage.generateUploadUrl(), maxBytes: MAX_FILE_BYTES, allowedTypes: [...FILE_TYPES] };
@@ -165,8 +183,12 @@ async function submitFlow(
   userId: Id<"users">,
   a: { contractId: Id<"contracts">; slotId: string; storageId?: Id<"_storage">; fileName?: string; text?: string; url?: string },
 ) {
-  const c = await loadContract(ctx, a.contractId);
-  requireRole(c, userId, ["payee"]);
+  const found = await loadContract(ctx, a.contractId);
+  requireRole(found, userId, ["payee"]);
+  assertNotFrozen(found);
+  // A deadline that passed before its scheduled job ran still counts: apply it, then judge the submission.
+  await applyOverdueDeadlines(ctx, found._id);
+  const c = await loadContract(ctx, found._id);
   if (c.status !== "active" || !c.ir || !c.machine) fail("INVALID_STATE", `Contract is ${c.status}, not active.`);
   const slot = c.ir.evidence.find((s) => s.id === a.slotId);
   if (!slot) fail("INVALID_ARGUMENT", `Unknown evidence slot "${a.slotId}".`);
@@ -204,6 +226,7 @@ async function submitFlow(
   const now = Date.now();
   const ai = aiConfigured();
   const due = now + SLA.funderReviewHours * HOUR;
+  const examinerDueAt = now + EXAMINER_TIMEOUT_MS;
   const evidenceId = await ctx.db.insert("evidence", {
     contractId: c._id,
     slotId: slot.id,
@@ -213,10 +236,12 @@ async function submitFlow(
     ...fields,
     beforeDeadlines,
     status: ai ? "checking" : "awaiting_funder",
-    ...(ai ? {} : { funderDecisionDueAt: due }),
+    ...(ai ? { examinerDueAt } : { funderDecisionDueAt: due }),
   });
-  if (ai) await ctx.scheduler.runAfter(0, internal.evidence.runExaminer, { evidenceId });
-  else await ctx.scheduler.runAt(due, internal.evidence.escalate, { evidenceId });
+  if (ai) {
+    await ctx.scheduler.runAfter(0, internal.evidence.runExaminer, { evidenceId });
+    await ctx.scheduler.runAt(examinerDueAt, internal.evidence.examinerTimeout, { evidenceId });
+  } else await ctx.scheduler.runAt(due, internal.evidence.escalate, { evidenceId });
   await appendJournal(ctx, c._id, actorUser(userId), "evidence.submitted", {
     evidenceId,
     slotId: slot.id,
@@ -349,15 +374,8 @@ export const _recordVerdict = internalMutation({
         stream: c._id,
       });
     } else {
-      const due = now + SLA.funderReviewHours * HOUR;
-      await ctx.db.patch(ev._id, { status: "awaiting_funder", ai, aiError: error ?? undefined, funderDecisionDueAt: due });
-      await ctx.scheduler.runAt(due, internal.evidence.escalate, { evidenceId });
-      await notify(ctx, c.funderId, {
-        kind: "evidence.review_needed",
-        title: `Review “${slot?.label ?? ev.slotId}”`,
-        body: v ? `AI verdict: ${v.overall}. ${v.summary}`.slice(0, 200) : "The AI examiner was unavailable; please review it yourself.",
-        stream: c._id,
-      });
+      const body = v ? `AI verdict: ${v.overall}. ${v.summary}` : "The AI examiner was unavailable; please review it yourself.";
+      await toFunderReview(ctx, ev, c, { ai, aiError: error ?? undefined }, body);
     }
     await appendJournal(ctx, c._id, "system", "evidence.examined", {
       evidenceId,
@@ -380,6 +398,7 @@ async function participantEvidence(ctx: MutationCtx, userId: Id<"users">, eviden
   const ev = await loadEvidence(ctx, evidenceId);
   const c = await loadContract(ctx, ev.contractId);
   requireRole(c, userId, [role]);
+  assertNotFrozen(c);
   return { ev, c };
 }
 
@@ -399,7 +418,8 @@ async function acceptFlow(ctx: MutationCtx, userId: Id<"users">, evidenceId: Id<
 
 async function rejectFlow(ctx: MutationCtx, userId: Id<"users">, evidenceId: Id<"evidence">, reason: string) {
   const { ev, c } = await participantEvidence(ctx, userId, evidenceId, "funder");
-  if (ev.status !== "awaiting_funder" && ev.status !== "checking") fail("INVALID_STATE", "Only evidence waiting for your review can be rejected; use challenge during a challenge window.");
+  if (ev.status !== "awaiting_funder") fail("INVALID_STATE", "Only evidence waiting for your review can be rejected; use challenge during a challenge window.");
+  if (!windowOpen(ev.funderDecisionDueAt)) fail("INVALID_STATE", "Your review period has ended; an arbiter will decide.");
   const why = reasonOf(reason, true);
   const endsAt = Date.now() + SLA.disputeWindowHours * HOUR;
   await ctx.db.patch(ev._id, { status: "funder_rejected", disputeEndsAt: endsAt, challenge: { by: userId, reason: why, at: Date.now() } });
@@ -416,7 +436,7 @@ async function rejectFlow(ctx: MutationCtx, userId: Id<"users">, evidenceId: Id<
 
 async function challengeFlow(ctx: MutationCtx, userId: Id<"users">, evidenceId: Id<"evidence">, reason: string) {
   const { ev, c } = await participantEvidence(ctx, userId, evidenceId, "funder");
-  if (ev.status !== "challenge_window") fail("INVALID_STATE", "There is no open challenge window for this evidence.");
+  if (ev.status !== "challenge_window" || !windowOpen(ev.challengeEndsAt)) fail("INVALID_STATE", "There is no open challenge window for this evidence.");
   const why = reasonOf(reason, true);
   await toArbitration(ctx, ev, { challenge: { by: userId, reason: why, at: Date.now() } }, actorUser(userId), `Funder challenged: ${why}`);
   await notify(ctx, c.payeeId, { kind: "evidence.challenged", title: "The funder challenged your submission", body: why.slice(0, 200), stream: c._id });
@@ -426,6 +446,7 @@ async function challengeFlow(ctx: MutationCtx, userId: Id<"users">, evidenceId: 
 async function disputeFlow(ctx: MutationCtx, userId: Id<"users">, evidenceId: Id<"evidence">, reason: string) {
   const { ev, c } = await participantEvidence(ctx, userId, evidenceId, "payee");
   if (ev.status !== "funder_rejected") fail("INVALID_STATE", "Only a funder rejection can be disputed.");
+  if (!windowOpen(ev.disputeEndsAt)) fail("INVALID_STATE", "The dispute window has closed.");
   const why = reasonOf(reason, true);
   await toArbitration(ctx, ev, { dispute: { by: userId, reason: why, at: Date.now() } }, actorUser(userId), `Payee disputed the rejection: ${why}`);
   await notify(ctx, c.funderId, { kind: "evidence.disputed", title: "The payee disputed your rejection", body: why.slice(0, 200), stream: c._id });
@@ -473,6 +494,29 @@ async function finalizeIfDue(ctx: MutationCtx, ev: EvidenceDoc) {
   await decide(ctx, ev, "rejected", "system", `The funder rejected it and the payee did not dispute within ${formatHours(SLA.disputeWindowHours)}.`, true);
 }
 
+/** Rows submitted before examinerDueAt existed time out from their submission. */
+const examinerDue = (ev: EvidenceDoc) => ev.examinerDueAt ?? ev.submittedAt + EXAMINER_TIMEOUT_MS;
+
+/** The examiner never answered (crashed or killed action): route it like an inconclusive verdict. */
+async function timeOutExaminerIfDue(ctx: MutationCtx, ev: EvidenceDoc) {
+  if (ev.status !== "checking" || examinerDue(ev) > Date.now()) return;
+  const c = await ctx.db.get(ev.contractId);
+  if (!c) return;
+  const why = "The AI check timed out.";
+  await toFunderReview(ctx, ev, c, { aiError: why }, `${why} Please review it yourself.`);
+  await appendJournal(ctx, c._id, "system", "evidence.examined", {
+    evidenceId: ev._id,
+    slotId: ev.slotId,
+    overall: null,
+    confidence: null,
+    suspectedManipulation: null,
+    model: null,
+    route: "awaiting_funder",
+    error: why,
+    timedOut: true,
+  });
+}
+
 export const closeChallengeWindow = internalMutation({
   args: idArg,
   handler: async (ctx, { evidenceId }) => {
@@ -497,12 +541,21 @@ export const finalizeRejection = internalMutation({
   },
 });
 
+export const examinerTimeout = internalMutation({
+  args: idArg,
+  handler: async (ctx, { evidenceId }) => {
+    const ev = await ctx.db.get(evidenceId);
+    if (ev) await timeOutExaminerIfDue(ctx, ev);
+  },
+});
+
 /** Cron (every minute): advance anything whose scheduled timer was missed. */
 export const sweepTimers = internalMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();
     const byStatus = (s: Status) => ctx.db.query("evidence").withIndex("by_status", (q) => q.eq("status", s)).take(200);
+    for (const ev of await byStatus("checking")) if (examinerDue(ev) < now) await timeOutExaminerIfDue(ctx, ev);
     for (const ev of await byStatus("challenge_window")) if ((ev.challengeEndsAt ?? Infinity) <= now - 30_000) await closeWindow(ctx, ev);
     for (const ev of await byStatus("awaiting_funder")) if ((ev.funderDecisionDueAt ?? Infinity) <= now - 30_000) await escalateIfDue(ctx, ev);
     for (const ev of await byStatus("funder_rejected")) if ((ev.disputeEndsAt ?? Infinity) <= now - 30_000) await finalizeIfDue(ctx, ev);
@@ -525,15 +578,17 @@ async function listFlow(ctx: QueryCtx, userId: Id<"users">, contractId: Id<"cont
     rows.map(async (ev) => {
       const slot = c.ir?.evidence.find((s) => s.id === ev.slotId);
       const timer =
-        ev.status === "challenge_window"
-          ? { kind: "challenge_window", endsAt: ev.challengeEndsAt ?? null }
-          : ev.status === "awaiting_funder"
-            ? { kind: "funder_review", endsAt: ev.funderDecisionDueAt ?? null }
-            : ev.status === "funder_rejected"
-              ? { kind: "dispute_window", endsAt: ev.disputeEndsAt ?? null }
-              : ev.status === "in_arbitration"
-                ? { kind: "arbitration", endsAt: ev.arbitrationDueAt ?? null }
-                : null;
+        ev.status === "checking"
+          ? { kind: "ai_check", endsAt: examinerDue(ev) }
+          : ev.status === "challenge_window"
+            ? { kind: "challenge_window", endsAt: ev.challengeEndsAt ?? null }
+            : ev.status === "awaiting_funder"
+              ? { kind: "funder_review", endsAt: ev.funderDecisionDueAt ?? null }
+              : ev.status === "funder_rejected"
+                ? { kind: "dispute_window", endsAt: ev.disputeEndsAt ?? null }
+                : ev.status === "in_arbitration"
+                  ? { kind: "arbitration", endsAt: ev.arbitrationDueAt ?? null }
+                  : null;
       const final = ev.status === "accepted" || ev.status === "rejected";
       return {
         _id: ev._id,
@@ -555,6 +610,7 @@ async function listFlow(ctx: QueryCtx, userId: Id<"users">, contractId: Id<"cont
         ai: ev.ai ?? null,
         aiError: ev.aiError ?? null,
         timer: timer ? { ...timer, msRemaining: timer.endsAt ? Math.max(0, timer.endsAt - now) : null } : null,
+        examinerDueAt: ev.examinerDueAt ?? null,
         challengeEndsAt: ev.challengeEndsAt ?? null,
         funderDecisionDueAt: ev.funderDecisionDueAt ?? null,
         disputeEndsAt: ev.disputeEndsAt ?? null,
@@ -563,9 +619,9 @@ async function listFlow(ctx: QueryCtx, userId: Id<"users">, contractId: Id<"cont
         dispute: ev.dispute ?? null,
         decision: ev.decision ?? null,
         canAccept: role === "funder" && !final && c.status === "active",
-        canReject: role === "funder" && (ev.status === "awaiting_funder" || ev.status === "checking") && c.status === "active",
-        canChallenge: role === "funder" && ev.status === "challenge_window" && c.status === "active",
-        canDispute: role === "payee" && ev.status === "funder_rejected" && c.status === "active",
+        canReject: role === "funder" && ev.status === "awaiting_funder" && windowOpen(ev.funderDecisionDueAt, now) && c.status === "active",
+        canChallenge: role === "funder" && ev.status === "challenge_window" && windowOpen(ev.challengeEndsAt, now) && c.status === "active",
+        canDispute: role === "payee" && ev.status === "funder_rejected" && windowOpen(ev.disputeEndsAt, now) && c.status === "active",
       };
     }),
   );

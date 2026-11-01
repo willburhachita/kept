@@ -34,13 +34,22 @@ export interface RefundParams {
   captureId: string;
   amountCents: number;
   note?: string;
+  /** Stray funds (effects.returnStrayFunds): not the stream's own money, so its funding and ledger stay untouched. */
+  stray?: boolean;
+}
+
+/** void_authorization: void the stream's own hold, or `authorizationId` when returning a stray authorization. */
+export interface VoidParams {
+  authorizationId?: string;
+  amountCents?: number;
+  stray?: boolean;
 }
 
 export type EffectParams =
   | { kind: "capture_authorization"; params: CaptureParams }
   | { kind: "payout"; params: PayoutParams }
   | { kind: "refund_capture"; params: RefundParams }
-  | { kind: "void_authorization"; params: Record<string, never> }
+  | { kind: "void_authorization"; params: VoidParams }
   | { kind: "protective_capture"; params: Record<string, never> }
   | { kind: "reauthorize"; params: Record<string, never> };
 
@@ -69,6 +78,19 @@ export async function enqueueEffect(
   });
   await ctx.scheduler.runAfter(0, internal.effects.process, { stream: e.stream });
   return id;
+}
+
+/**
+ * The effect already enqueued for this stream under `ref`, in any status.
+ * enqueueEffect never dedupes (refs such as "refund" repeat legitimately), so
+ * one-shot effects check this first to stay idempotent.
+ */
+export async function findEffectByRef(ctx: MutationCtx, stream: string, ref: string): Promise<Doc<"effects"> | null> {
+  return await ctx.db
+    .query("effects")
+    .withIndex("by_stream_seq", (q) => q.eq("stream", stream))
+    .filter((q) => q.eq(q.field("ref"), ref))
+    .first();
 }
 
 /** Any effect for this stream not yet finished? */

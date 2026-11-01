@@ -5,3 +5,7 @@ dist/
 *.log
 .DS_Store
 coverage/
+.next/
+next-env.d.ts
+*.tsbuildinfo
+.vercel

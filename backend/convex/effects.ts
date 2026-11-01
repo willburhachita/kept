@@ -6,9 +6,10 @@
  *  - every PayPal call carries a stable idempotency key derived from the
  *    effect id, so retries (timeouts, crashes, reaper) never move money twice
  *  - retryable failures back off exponentially; permanent failures freeze
- *    the contract for an arbiter instead of guessing
+ *    the contract for an arbiter instead of guessing (a failed stray return
+ *    only alerts staff: that money was never the stream's)
  */
-import { formatCents, PAYPAL_RULES } from "@kept/core";
+import { formatCents, PAYPAL_RULES, type Currency } from "@kept/core";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
@@ -16,10 +17,19 @@ import { internalAction, internalMutation, type MutationCtx } from "./_generated
 import { checkSettled, freezeContract, syncFunderRefunds } from "./engine";
 import { maskEmail } from "./lib/authz";
 import { env } from "./lib/env";
+import { fail as failWith } from "./lib/errors";
 import { appendJournal } from "./lib/journal";
 import { postLedger } from "./lib/ledger";
 import { notify, notifyStaff } from "./lib/notify";
-import { enqueueEffect, hasOpenEffects, type CaptureParams, type PayoutParams, type RefundParams } from "./lib/outbox";
+import {
+  enqueueEffect,
+  findEffectByRef,
+  hasOpenEffects,
+  type CaptureParams,
+  type PayoutParams,
+  type RefundParams,
+  type VoidParams,
+} from "./lib/outbox";
 import { getRail, RailError, toRailError } from "./rails";
 
 const HOUR = 3_600_000;
@@ -39,7 +49,12 @@ interface StreamContext {
   title: string;
 }
 
-/** Context for executing an effect, or null when the stream may not move money right now. */
+/**
+ * Context for executing an effect, or null when the stream may not move money right now.
+ * Every other status may run: stray returns (returnStrayFunds) execute on cancelled,
+ * awaiting_funding or funding contracts and revoked, awaiting_funding or funding
+ * mandates, whose funding _beginOrder already initialized.
+ */
 async function streamContext(ctx: MutationCtx, e: Doc<"effects">): Promise<StreamContext | null> {
   if (e.streamKind === "contract") {
     const id = ctx.db.normalizeId("contracts", e.stream);
@@ -91,35 +106,34 @@ export const claimNext = internalMutation({
       if (now - inFlight.updatedAt < STUCK_MS) return null;
       effect = inFlight; // crashed mid-call: retry with the same idempotency key
     } else {
-      const next = await ctx.db
+      effect = await ctx.db
         .query("effects")
         .withIndex("by_stream_seq", (q) => q.eq("stream", stream))
         .filter((q) => q.eq(q.field("status"), "pending"))
         .first();
-      if (!next) return null;
-      if (next.nextAttemptAt > now) {
-        await ctx.scheduler.runAt(next.nextAttemptAt, internal.effects.process, { stream });
-        return null;
-      }
-      effect = next;
+      if (!effect) return null;
     }
     let context = await streamContext(ctx, effect);
     if (!context && effect.status === "pending") {
-      // Frozen: a queued protective capture may still run ahead of everything else.
+      // Frozen: a queued protective capture may still run ahead of everything else, even
+      // while the head is parked or backing off (it must not wait past the hold's expiry).
       const protective = await ctx.db
         .query("effects")
         .withIndex("by_stream_seq", (q) => q.eq("stream", stream))
         .filter((q) => q.and(q.eq(q.field("status"), "pending"), q.eq(q.field("kind"), "protective_capture")))
         .first();
-      const pc = protective ? await streamContext(ctx, protective) : null;
+      const pc = protective && protective.nextAttemptAt <= now ? await streamContext(ctx, protective) : null;
       if (protective && pc) {
         effect = protective;
         context = pc;
       } else {
         // Park the head effect out of the reaper's way; resume resets it.
-        await ctx.db.patch(effect._id, { nextAttemptAt: now + 24 * HOUR, updatedAt: now });
+        if (effect.nextAttemptAt <= now) await ctx.db.patch(effect._id, { nextAttemptAt: now + 24 * HOUR, updatedAt: now });
         return null;
       }
+    } else if (effect.status === "pending" && effect.nextAttemptAt > now) {
+      await ctx.scheduler.runAt(effect.nextAttemptAt, internal.effects.process, { stream });
+      return null;
     }
     if (!context) return null;
     await ctx.db.patch(effect._id, { status: "in_flight", attempts: effect.attempts + 1, updatedAt: now });
@@ -189,6 +203,12 @@ async function execute(effect: Doc<"effects">, c: StreamContext): Promise<Record
       return { payoutBatchId: r.payoutBatchId, status: r.status, amountCents: p.amountCents };
     }
     case "void_authorization": {
+      const p = effect.params as VoidParams;
+      if (p.authorizationId) {
+        // A stray authorization (returnStrayFunds), not the stream's own hold.
+        const r = await rail.voidAuthorization({ authorizationId: p.authorizationId, requestId: key("void") });
+        return { status: r.status, authorizationId: p.authorizationId, amountCents: p.amountCents ?? 0 };
+      }
       // Nothing left on the hold (fully captured): voiding would fail, and there is nothing to release.
       if (!c.authorizationId || c.uncapturedCents <= 0 || c.runtimeMode === "escrow") return { skipped: true, uncapturedCents: 0 };
       const r = await rail.voidAuthorization({ authorizationId: c.authorizationId, requestId: key("void") });
@@ -245,10 +265,28 @@ async function applyReauth(f: NonNullable<Doc<"contracts">["funding"]>, r: Resul
   }
 }
 
+function isStray(e: Doc<"effects">): boolean {
+  return (e.params as { stray?: boolean } | null)?.stray === true;
+}
+
+/** A stray authorization was voided or a stray capture refunded: journal it and tell the payer. Nothing else changes. */
+async function strayReturned(ctx: MutationCtx, e: Doc<"effects">, payerId: Id<"users"> | undefined, title: string, currency: Currency): Promise<void> {
+  const p = e.params as VoidParams & Partial<RefundParams>;
+  const amountCents = p.amountCents ?? 0;
+  const returned = e.kind === "void_authorization" ? { authorizationId: p.authorizationId ?? null } : { captureId: p.captureId ?? null };
+  await appendJournal(ctx, e.stream, "paypal", "paypal.stray_returned", { ...returned, amountCents });
+  await notify(ctx, payerId, { kind: "funds.returned", title: `${formatCents(amountCents, currency)} returned to your PayPal`, body: title, stream: e.stream });
+}
+
 async function onContractSuccess(ctx: MutationCtx, e: Doc<"effects">, r: Result): Promise<void> {
   const id = ctx.db.normalizeId("contracts", e.stream);
   const c = id ? await ctx.db.get(id) : null;
   if (!c || !c.funding) return;
+  if (isStray(e)) {
+    await strayReturned(ctx, e, c.funderId, c.ir?.title ?? "", c.funding.currency);
+    if (c.status === "settling") await checkSettled(ctx, c._id);
+    return;
+  }
   const now = Date.now();
   const f = { ...c.funding, captures: c.funding.captures.map((x) => ({ ...x })) };
   const L = { ...c.ledger };
@@ -320,7 +358,8 @@ async function onContractSuccess(ctx: MutationCtx, e: Doc<"effects">, r: Result)
       await applyReauth(f, r, now);
       await ctx.db.patch(c._id, { funding: f, ledger: L, updatedAt: now });
       await appendJournal(ctx, e.stream, "paypal", "paypal.protective_captured", { captureId: r.captureId ?? null, amountCents: r.amountCents ?? 0 });
-      await syncFunderRefunds(ctx, c._id, c.status === "settling");
+      // Once the machine has closed (settling, or frozen after closing) the unused fee reserve goes back too.
+      await syncFunderRefunds(ctx, c._id, c.machine?.closed === true);
       break;
     }
     case "payout": {
@@ -374,6 +413,11 @@ async function onMandateSuccess(ctx: MutationCtx, e: Doc<"effects">, r: Result):
   const id = ctx.db.normalizeId("mandates", e.stream);
   const m = id ? await ctx.db.get(id) : null;
   if (!m || !m.funding) return;
+  if (isStray(e)) {
+    // Not this mandate's budget: a stray void never closes the mandate.
+    await strayReturned(ctx, e, m.ownerId, m.policy.title, m.funding.currency);
+    return;
+  }
   const now = Date.now();
   const f = { ...m.funding, captures: m.funding.captures.map((x) => ({ ...x })) };
   const L = { ...m.ledger };
@@ -477,6 +521,14 @@ export const fail = internalMutation({
 
     if (e.kind === "reauthorize") {
       // best effort only
+    } else if (isStray(e)) {
+      // Not the stream's own money: leave the stream running; an arbiter retries the return.
+      await notifyStaff(ctx, {
+        kind: "paypal.stray_failed",
+        title: "Returning stray PayPal funds failed",
+        body: `PayPal ${e.kind.replace(/_/g, " ")} failed (${a.code}). Retry it from the arbiter queue.`,
+        stream: e.stream,
+      });
     } else if (e.streamKind === "contract") {
       const id = ctx.db.normalizeId("contracts", e.stream);
       let c = id ? await ctx.db.get(id) : null;
@@ -564,6 +616,7 @@ export async function releaseDeferredPayout(ctx: MutationCtx, stream: string, ca
   const captures = doc.funding.captures.map((x) => ({ ...x }));
   const cap = captures.find((x) => x.captureId === captureId);
   if (!cap) return false;
+  if (cap.status === "COMPLETED" && !cap.deferredPayouts?.length) return true; // nothing parked (or already released)
   cap.status = "COMPLETED";
   const deferred = cap.deferredPayouts ?? [];
   delete cap.deferredPayouts;
@@ -591,11 +644,15 @@ export const pollPendingCaptures = internalMutation({
       const rows = await ctx.db.query("contracts").withIndex("by_status", (q) => q.eq("status", status)).take(300);
       for (const c of rows) {
         if (c.funding?.pendingCapture && status === "funding") jobs.push({ stream: c._id, captureId: c.funding.pendingCapture.captureId, activate: true });
-        for (const cap of c.funding?.captures ?? []) if (cap.status && cap.status !== "COMPLETED") jobs.push({ stream: c._id, captureId: cap.captureId, activate: false });
+        for (const cap of c.funding?.captures ?? []) if (cap.status === "PENDING") jobs.push({ stream: c._id, captureId: cap.captureId, activate: false });
       }
     }
-    const mandates = await ctx.db.query("mandates").withIndex("by_status", (q) => q.eq("status", "active")).take(300);
-    for (const m of mandates) for (const cap of m.funding?.captures ?? []) if (cap.status && cap.status !== "COMPLETED") jobs.push({ stream: m._id, captureId: cap.captureId, activate: false });
+    // A spend stays executing until its payout is sent, so this also finds mandates already closing, closed or frozen.
+    const executing = await ctx.db.query("spends").withIndex("by_status", (q) => q.eq("status", "executing")).take(300);
+    for (const mandateId of new Set(executing.map((s) => s.mandateId))) {
+      const m = await ctx.db.get(mandateId);
+      for (const cap of m?.funding?.captures ?? []) if (cap.status === "PENDING") jobs.push({ stream: mandateId, captureId: cap.captureId, activate: false });
+    }
     for (const j of jobs.slice(0, 100)) await ctx.scheduler.runAfter(0, internal.effects.checkCapture, j);
   },
 });
@@ -609,7 +666,9 @@ export const checkCapture = internalAction({
     } catch {
       return;
     }
-    if (status === "COMPLETED") await ctx.runMutation(internal.effects._captureCompleted, a);
+    // A capture that cleared and was then (partly) refunded no longer reads COMPLETED, but its parked payouts are due.
+    const cleared = status === "COMPLETED" || (!a.activate && (status === "PARTIALLY_REFUNDED" || status === "REFUNDED"));
+    if (cleared) await ctx.runMutation(internal.effects._captureCompleted, a);
     else if (status === "DECLINED" || status === "FAILED") await ctx.runMutation(internal.effects._captureFailed, { stream: a.stream, captureId: a.captureId, status });
   },
 });
@@ -628,11 +687,39 @@ export const _captureCompleted = internalMutation({
 export const _captureFailed = internalMutation({
   args: { stream: v.string(), captureId: v.string(), status: v.string() },
   handler: async (ctx, a) => {
-    const id = ctx.db.normalizeId("contracts", a.stream);
-    const c = id ? await ctx.db.get(id) : null;
-    if (c) await freezeContract(ctx, c, `PayPal capture ${a.captureId} is ${a.status}.`, "paypal");
+    const cid = ctx.db.normalizeId("contracts", a.stream);
+    const mid = cid ? null : ctx.db.normalizeId("mandates", a.stream);
+    const doc = cid ? await ctx.db.get(cid) : mid ? await ctx.db.get(mid) : null;
+    if (!doc) return;
+    if (doc.funding?.captures.some((x) => x.captureId === a.captureId && x.status === "PENDING")) {
+      // Record the outcome so the poller stops asking. Payouts parked on it stay parked for the arbiter.
+      const captures = doc.funding.captures.map((x) => (x.captureId === a.captureId ? { ...x, status: a.status } : x));
+      await ctx.db.patch(doc._id, { funding: { ...doc.funding, captures }, updatedAt: Date.now() });
+    }
+    await freezeStream(ctx, a.stream, `PayPal capture ${a.captureId} is ${a.status}.`);
   },
 });
+
+/** Freeze a contract or mandate because PayPal reported a problem. False when the stream does not exist. */
+export async function freezeStream(ctx: MutationCtx, stream: string, reason: string): Promise<boolean> {
+  const cid = ctx.db.normalizeId("contracts", stream);
+  if (cid) {
+    const c = await ctx.db.get(cid);
+    if (!c) return false;
+    await freezeContract(ctx, c, reason, "paypal");
+    return true;
+  }
+  const mid = ctx.db.normalizeId("mandates", stream);
+  const m = mid ? await ctx.db.get(mid) : null;
+  if (!m) return false;
+  if (m.status !== "frozen") {
+    await ctx.db.patch(m._id, { status: "frozen", frozen: { reason, at: Date.now(), by: "paypal" }, updatedAt: Date.now() });
+    await appendJournal(ctx, m._id, "paypal", "mandate.frozen", { reason });
+    await notify(ctx, m.ownerId, { kind: "mandate.frozen", title: "Mandate frozen", body: reason, stream: m._id });
+    await notifyStaff(ctx, { kind: "mandate.frozen", title: "Mandate needs an arbiter", body: reason, stream: m._id });
+  }
+  return true;
+}
 
 /** Escrow funding that was PENDING has cleared: start the contract now. */
 export async function activatePendingEscrow(ctx: MutationCtx, stream: string, captureId: string): Promise<boolean> {
@@ -649,6 +736,46 @@ export async function activatePendingEscrow(ctx: MutationCtx, stream: string, ca
     currency: pc.currency,
   });
   return true;
+}
+
+/**
+ * Give back money PayPal took on a checkout that no longer funds the stream
+ * (reset, replaced, cancelled or revoked while the PayPal call was in flight):
+ * void the authorization, or refund the capture. The stream's own funding,
+ * ledger and status are never touched. Repeats are no-ops (one effect per
+ * authorization or capture, found by ref), so nothing is returned twice.
+ */
+export async function returnStrayFunds(
+  ctx: MutationCtx,
+  a: { stream: string; streamKind: "contract" | "mandate"; authorizationId?: string; captureId?: string; amountCents: number; reason: string },
+): Promise<void> {
+  const target = a.authorizationId || a.captureId;
+  if (!target) failWith("INVALID_ARGUMENT", "authorizationId or captureId required to return stray funds.");
+  const ref = `stray:${target}`;
+  if (await findEffectByRef(ctx, a.stream, ref)) return;
+  if (a.authorizationId) {
+    await enqueueEffect(ctx, {
+      stream: a.stream,
+      streamKind: a.streamKind,
+      kind: "void_authorization",
+      params: { authorizationId: a.authorizationId, amountCents: a.amountCents, stray: true },
+      ref,
+    });
+  } else {
+    await enqueueEffect(ctx, {
+      stream: a.stream,
+      streamKind: a.streamKind,
+      kind: "refund_capture",
+      params: { captureId: target, amountCents: a.amountCents, stray: true, note: "Returned: this checkout was closed" },
+      ref,
+    });
+  }
+  await appendJournal(ctx, a.stream, "paypal", "paypal.stray_funds", {
+    reason: a.reason,
+    authorizationId: a.authorizationId ?? null,
+    captureId: a.captureId ?? null,
+    amountCents: a.amountCents,
+  });
 }
 
 /** True when nothing is pending for this stream (used by mandate closing). */

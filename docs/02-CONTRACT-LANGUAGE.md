@@ -31,7 +31,7 @@ Small on purpose: no loops, and no arithmetic beyond fixed amounts and "everythi
 
 - **Activation**: funding confirmed; the principal is held. Deadlines are counted from here and fire in `afterHours` order.
 - **Evidence**: each slot can be submitted once. Submissions are allowed until the **last** deadline passes. After submission a review ends in `accepted` or `rejected`, possibly long after later deadlines.
-- **Literals**: `submitted(E)`, `submitted_before(E, D)` (submitted while D had not passed), `accepted(E)`, `rejected(E)`, `deadline_passed(D)`, each optionally negated. A guard is an AND of literals.
+- **Literals**: `submitted(E)`, `submitted_before(E, D)` (submitted while D had not passed), `accepted(E)`, `rejected(E)`, `deadline_passed(D)`, each optionally negated. A guard is an AND of literals. `deadline_passed` is for rule guards only: a promise premise (`guarantees[].when`) may not use it, because a contract can close before the deadline passes. Write "nothing arrived by the deadline" as NOT `submitted_before(E, D)`.
 - **Clauses**: when the trigger happens (`activated`, `accepted(E)`, `rejected(E)`, `deadline(D)`), every matching clause whose guard holds fires **once ever**, in declaration order.
 - **Actions**: `release` pays the payee, `refund` returns money to the funder, each for a fixed number of cents or `remaining`. A fixed amount above what is held is a fault: the verifier reports it, and the runtime would freeze.
 - **Closing**: when nothing is held the contract closes; later events cannot happen.

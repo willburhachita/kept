@@ -40,7 +40,7 @@ let client: { key: string; c: Anthropic } | null = null;
 function getClient(): Anthropic {
   const key = env.anthropicKey();
   if (!key) fail("CONFIG_MISSING", "AI is not configured (ANTHROPIC_API_KEY).");
-  if (client?.key !== key) client = { key, c: new Anthropic({ apiKey: key, maxRetries: 2, timeout: 240_000 }) };
+  if (client?.key !== key) client = { key, c: new Anthropic({ apiKey: key, maxRetries: 1, timeout: 120_000 }) };
   return client.c;
 }
 

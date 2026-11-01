@@ -39,17 +39,6 @@ const M = (s: string) => s as Id<"mandates">;
 const ROUTES: Route[] = [
   // Public
   {
-    method: "POST",
-    re: /^\/v1\/verify$/,
-    auth: false,
-    run: async ({ body }) => {
-      const fee = body.feeBps;
-      if (fee !== undefined && (!Number.isInteger(fee) || fee < 0 || fee > 2000)) fail("INVALID_ARGUMENT", "feeBps must be an integer 0-2000.");
-      const r = verifyContract(body.ir ?? body.contract, { feeBps: fee ?? 0, maxStates: 50_000 });
-      return r.valid ? { valid: true, report: r.report, warnings: r.issues } : { valid: false, issues: r.issues };
-    },
-  },
-  {
     method: "GET",
     re: /^\/v1\/transparency\/checkpoints$/,
     auth: false,
@@ -64,6 +53,20 @@ const ROUTES: Route[] = [
 
   // Account
   { method: "GET", re: /^\/v1\/me$/, auth: true, run: ({ ctx, userId }) => ctx.runQuery(internal.apiKeys.me, { userId }) },
+
+  // Verification: exhaustive checking is CPU-heavy, so it needs a key and shares the app's per-user verify budget.
+  {
+    method: "POST",
+    re: /^\/v1\/verify$/,
+    auth: true,
+    run: async ({ ctx, userId, body }) => {
+      await ctx.runMutation(internal.verification._limit, { key: `verify:${userId}` });
+      const fee = body.feeBps;
+      if (fee !== undefined && (!Number.isInteger(fee) || fee < 0 || fee > 2000)) fail("INVALID_ARGUMENT", "feeBps must be an integer 0-2000.");
+      const r = verifyContract(body.ir ?? body.contract, { feeBps: fee ?? 0, maxStates: 50_000 });
+      return r.valid ? { valid: true, report: r.report, warnings: r.issues } : { valid: false, issues: r.issues };
+    },
+  },
 
   // Contracts
   {
@@ -105,6 +108,7 @@ const ROUTES: Route[] = [
   },
   { method: "POST", re: /^\/v1\/contracts\/([^/]+)\/fund$/, auth: true, run: ({ ctx, userId, p }) => ctx.runAction(internal.funding.startAs, { userId, contractId: C(p[0]) }) },
   { method: "POST", re: /^\/v1\/contracts\/([^/]+)\/fund\/confirm$/, auth: true, run: ({ ctx, userId, p }) => ctx.runAction(internal.funding.confirmAs, { userId, contractId: C(p[0]) }) },
+  { method: "POST", re: /^\/v1\/contracts\/([^/]+)\/fund\/reset$/, auth: true, run: ({ ctx, userId, p }) => ctx.runAction(internal.funding.resetAs, { userId, contractId: C(p[0]) }) },
   { method: "POST", re: /^\/v1\/contracts\/([^/]+)\/cancel$/, auth: true, run: ({ ctx, userId, p }) => ctx.runMutation(internal.contracts.cancelAs, { userId, contractId: C(p[0]) }) },
   { method: "POST", re: /^\/v1\/contracts\/([^/]+)\/uploads$/, auth: true, run: ({ ctx, userId, p }) => ctx.runMutation(internal.evidence.generateUploadUrlAs, { userId, contractId: C(p[0]) }) },
   {

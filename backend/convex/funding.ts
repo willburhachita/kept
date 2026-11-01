@@ -24,6 +24,14 @@ export function rethrowRail(e: unknown): never {
   fail("PAYMENT_FAILED", r.message, { paypalCode: r.code });
 }
 
+const MAX_ABANDONED_ORDERS = 10;
+
+/** `abandoned` plus `orderId` (when there is one), newest last, capped. */
+function abandonOrder(abandoned: string[] | undefined, orderId: string | undefined): string[] | undefined {
+  if (!orderId) return abandoned;
+  return [...(abandoned ?? []).filter((x) => x !== orderId), orderId].slice(-MAX_ABANDONED_ORDERS);
+}
+
 export const _beginOrder = internalMutation({
   args: { contractId: v.id("contracts"), userId: v.id("users") },
   handler: async (ctx, { contractId, userId }) => {
@@ -50,6 +58,8 @@ export const _beginOrder = internalMutation({
         authorizationCents,
         maxFeeCents: maxFee(c.ir.principalCents, c.feeBps),
         captures: [],
+        // Earlier checkouts (including one an arbiter resume left behind) stay recognizable: money PayPal still takes on them is returned.
+        abandonedOrderIds: abandonOrder(c.funding?.abandonedOrderIds, c.funding?.orderId),
       },
       updatedAt: Date.now(),
     });
@@ -65,7 +75,11 @@ export const _beginOrder = internalMutation({
   },
 });
 
-/** Back to awaiting_funding after an abandoned (never approved) PayPal checkout. */
+/**
+ * Back to awaiting_funding after an abandoned (never approved) PayPal checkout.
+ * The order is remembered: if PayPal still authorizes or captures it (a
+ * confirmation already in flight), engine.activate returns the money.
+ */
 export const _resetOrder = internalMutation({
   args: { contractId: v.id("contracts"), userId: v.id("users"), orderId: v.string(), orderStatus: v.string() },
   handler: async (ctx, a) => {
@@ -77,7 +91,13 @@ export const _resetOrder = internalMutation({
     }
     await ctx.db.patch(c._id, {
       status: "awaiting_funding",
-      funding: { ...c.funding, orderId: undefined, approveUrl: undefined, orderCreatedAt: undefined },
+      funding: {
+        ...c.funding,
+        orderId: undefined,
+        approveUrl: undefined,
+        orderCreatedAt: undefined,
+        abandonedOrderIds: abandonOrder(c.funding.abandonedOrderIds, a.orderId),
+      },
       updatedAt: Date.now(),
     });
     await appendJournal(ctx, c._id, actorUser(a.userId), "funding.reset", { orderId: a.orderId, orderStatus: a.orderStatus });
@@ -134,6 +154,14 @@ export interface FundingStarted {
   approveUrl: string;
 }
 
+export interface FundingConfirmed {
+  status: string;
+  /** Escrow payment is PENDING at PayPal: the contract starts once it clears. */
+  pending?: boolean;
+  /** PayPal took money on a checkout the contract no longer waits for; it is being returned. */
+  returned?: boolean;
+}
+
 export async function startFunding(ctx: ActionCtx, userId: Id<"users">, contractId: Id<"contracts">): Promise<FundingStarted> {
   const prep: BeginOrder = await ctx.runMutation(internal.funding._beginOrder, { contractId, userId });
   if (prep.kind === "existing") return { orderId: prep.orderId, approveUrl: prep.approveUrl };
@@ -159,7 +187,7 @@ export async function startFunding(ctx: ActionCtx, userId: Id<"users">, contract
 }
 
 /** Authorize or capture the approved order, then activate the contract. Idempotent. */
-export async function confirmFunding(ctx: ActionCtx, userId: Id<"users"> | null, contractId: Id<"contracts">): Promise<{ status: string; pending?: boolean }> {
+export async function confirmFunding(ctx: ActionCtx, userId: Id<"users"> | null, contractId: Id<"contracts">): Promise<FundingConfirmed> {
   const info: { status: string; orderId: string | null; mode: "authorize" | "escrow" | null; pendingCaptureId: string | null } = await ctx.runQuery(
     internal.funding._orderInfo,
     { contractId, userId: userId ?? undefined },
@@ -171,6 +199,7 @@ export async function confirmFunding(ctx: ActionCtx, userId: Id<"users"> | null,
     if (info.pendingCaptureId) {
       // Escrow payment was PENDING: check whether it has cleared.
       const cap = await rail.getCapture(info.pendingCaptureId);
+      if (cap.status === "DECLINED" || cap.status === "FAILED") fail("PAYMENT_FAILED", `PayPal capture is ${cap.status}.`);
       if (cap.status !== "COMPLETED") return { status: "funding", pending: true };
       return await ctx.runMutation(internal.engine.activate, {
         contractId,
@@ -218,7 +247,7 @@ export const start = action({
 /** Funder: after approving on PayPal, confirm to authorize/capture and go live. */
 export const confirm = action({
   args: { contractId: v.id("contracts") },
-  handler: async (ctx, { contractId }): Promise<{ status: string; pending?: boolean }> => confirmFunding(ctx, await requireUserId(ctx), contractId),
+  handler: async (ctx, { contractId }): Promise<FundingConfirmed> => confirmFunding(ctx, await requireUserId(ctx), contractId),
 });
 
 async function resetFlow(ctx: ActionCtx, userId: Id<"users">, contractId: Id<"contracts">): Promise<{ status: string }> {
@@ -249,7 +278,7 @@ export const startAs = internalAction({
 
 export const confirmAs = internalAction({
   args: { userId: v.id("users"), contractId: v.id("contracts") },
-  handler: async (ctx, { userId, contractId }): Promise<{ status: string; pending?: boolean }> => confirmFunding(ctx, userId, contractId),
+  handler: async (ctx, { userId, contractId }): Promise<FundingConfirmed> => confirmFunding(ctx, userId, contractId),
 });
 
 export const resetAs = internalAction({

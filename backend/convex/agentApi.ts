@@ -6,11 +6,11 @@
  * Decision order for a spend: deterministic guard (evaluateSpend) first;
  * then, if AI is configured, a screener that can only escalate to a human.
  */
-import { SPEND_REVIEW_SCHEMA, evaluateSpend, formatCents } from "@kept/core";
+import { SPEND_REVIEW_SCHEMA, evaluateSpend, formatCents, type SpendEvaluation, type SpendRequest } from "@kept/core";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
-import { internalAction, internalMutation, internalQuery, type QueryCtx } from "./_generated/server";
+import { internalAction, internalMutation, internalQuery, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { aiConfigured, callStructured } from "./ai/claude";
 import { SCREENER_SYSTEM, screenerRequest } from "./ai/screener";
 import { maskEmail } from "./lib/authz";
@@ -21,6 +21,7 @@ import { LIMITS, rateLimit } from "./lib/rateLimit";
 import { executeSpend } from "./mandates";
 
 const HOUR = 3_600_000;
+const SCREENING_TIMEOUT_MS = 10 * 60_000;
 const agentActor = (tokenId: Id<"agentTokens">): Actor => `agent:${tokenId}`;
 
 async function auth(ctx: QueryCtx, tokenHash: string) {
@@ -29,6 +30,40 @@ async function auth(ctx: QueryCtx, tokenHash: string) {
   const m = await ctx.db.get(t.mandateId);
   if (!m) return null;
   return { token: t, mandate: m };
+}
+
+/**
+ * The guard against the mandate as it is now. Spends still waiting on the
+ * screener or the owner count toward the purchase and hourly caps, so an
+ * agent cannot queue past them. `self` is a pending spend being re-checked:
+ * its own reservation and entry are left out.
+ */
+async function guard(ctx: QueryCtx, m: Doc<"mandates">, req: SpendRequest, now: number, self?: Doc<"spends">): Promise<SpendEvaluation> {
+  const latest = await ctx.db.query("spends").withIndex("by_mandate", (q) => q.eq("mandateId", m._id)).order("desc").take(500);
+  const pending = latest.filter((s) => (s.status === "screening" || s.status === "needs_approval") && s._id !== self?._id);
+  return evaluateSpend(
+    m.policy,
+    {
+      status: m.status,
+      activatedAt: m.activatedAt ?? null,
+      spentCents: m.spentCents,
+      reservedCents: self ? Math.max(0, m.reservedCents - self.amountCents) : m.reservedCents,
+      purchases: m.purchases + pending.length,
+      recentSpendTimes: [...m.recentSpendTimes, ...pending.filter((s) => now - s.createdAt < HOUR).map((s) => s.createdAt)],
+    },
+    req,
+    now,
+    m.feeBps,
+  );
+}
+
+async function notifyNeedsApproval(ctx: MutationCtx, m: Doc<"mandates">, s: Doc<"spends">, why: string) {
+  await notify(ctx, m.ownerId, {
+    kind: "spend.needs_approval",
+    title: `Approve ${formatCents(s.amountCents, s.currency)}?`,
+    body: `${m.policy.title}: ${why.slice(0, 180)}`,
+    stream: m._id,
+  });
 }
 
 function spendView(s: Doc<"spends">, m: Doc<"mandates">) {
@@ -66,7 +101,11 @@ export const mandateForAgent = internalQuery({
     const m = a.mandate;
     const p = m.policy;
     const now = Date.now();
-    const recent = await ctx.db.query("spends").withIndex("by_mandate", (q) => q.eq("mandateId", m._id)).order("desc").take(10);
+    const latest = await ctx.db.query("spends").withIndex("by_mandate", (q) => q.eq("mandateId", m._id)).order("desc").take(500);
+    const recent = latest.slice(0, 10);
+    // Pending spends count against the limits exactly as the guard counts them.
+    const pending = latest.filter((s) => s.status === "screening" || s.status === "needs_approval");
+    const pendingLastHour = pending.filter((s) => now - s.createdAt < HOUR).length;
     return {
       mandateId: m._id,
       title: p.title,
@@ -81,9 +120,10 @@ export const mandateForAgent = internalQuery({
       perPurchaseMaxCents: p.perPurchaseMaxCents,
       approvalAboveCents: p.approvalAboveCents,
       maxPurchases: p.maxPurchases,
-      purchasesLeft: Math.max(0, p.maxPurchases - m.purchases),
+      purchasesLeft: Math.max(0, p.maxPurchases - m.purchases - pending.length),
+      pendingPurchases: pending.length,
       maxPerHour: p.maxPerHour,
-      purchasesLastHour: m.recentSpendTimes.filter((t) => now - t < HOUR).length,
+      purchasesLastHour: m.recentSpendTimes.filter((t) => now - t < HOUR).length + pendingLastHour,
       allowedMerchants: p.allowedMerchants,
       expiresAt: m.expiresAt ?? null,
       msUntilExpiry: m.expiresAt ? Math.max(0, m.expiresAt - now) : null,
@@ -116,14 +156,7 @@ export const requestSpend = internalMutation({
 
     const now = Date.now();
     const merchantEmail = a.merchantEmail.trim().toLowerCase().slice(0, 254);
-    const req = { amountCents: a.amountCents, currency: a.currency, merchantEmail, description: a.description };
-    const ev = evaluateSpend(
-      m.policy,
-      { status: m.status, activatedAt: m.activatedAt ?? null, spentCents: m.spentCents, reservedCents: m.reservedCents, purchases: m.purchases, recentSpendTimes: m.recentSpendTimes },
-      req,
-      now,
-      m.feeBps,
-    );
+    const ev = await guard(ctx, m, { amountCents: a.amountCents, currency: a.currency, merchantEmail, description: a.description }, now);
     const screening = ev.decision === "approve" && aiConfigured();
     const status = ev.decision === "deny" ? "denied" : ev.decision === "needs_approval" ? "needs_approval" : screening ? "screening" : "executing";
     const spendId = await ctx.db.insert("spends", {
@@ -203,6 +236,11 @@ export const screen = internalAction({
   },
 });
 
+/**
+ * Apply the screener's verdict. The mandate may have changed while the AI ran
+ * (other spends, revocation, expiry), so the guard runs again first: the AI
+ * can only escalate, never approve what the guard now blocks.
+ */
 export const finishScreening = internalMutation({
   args: { spendId: v.id("spends"), review: v.union(v.any(), v.null()) },
   handler: async (ctx, { spendId, review }) => {
@@ -212,20 +250,42 @@ export const finishScreening = internalMutation({
     if (!m) return;
     const r = review as { fits: boolean; risk: string; reasons: string[] } | null;
     const now = Date.now();
-    if (m.status === "active" && r && r.fits === true && r.risk === "low") {
+    const ev = await guard(ctx, m, { amountCents: s.amountCents, currency: s.currency, merchantEmail: s.merchantEmail, description: s.description }, now, s);
+    if (ev.decision === "deny") {
+      await ctx.db.patch(s._id, { status: "cancelled", review: r ?? undefined, reasons: [...s.reasons, `No longer within the mandate: ${ev.reasons.join("; ")}`], updatedAt: now });
+      await ctx.db.patch(m._id, { reservedCents: Math.max(0, m.reservedCents - s.amountCents), updatedAt: now });
+      await appendJournal(ctx, m._id, "system", "spend.cancelled", { spendId, reasons: ev.reasons.slice(0, 5) });
+      return;
+    }
+    if (ev.decision === "approve" && r && r.fits === true && r.risk === "low") {
       await ctx.db.patch(s._id, { review: r });
       await executeSpend(ctx, m, (await ctx.db.get(s._id))!, "system", true);
       return;
     }
-    const reasons = r ? [`AI screening: ${r.risk} risk`, ...(Array.isArray(r.reasons) ? r.reasons.slice(0, 5) : [])] : ["AI screening unavailable; needs your approval."];
+    const aiReasons = r ? [`AI screening: ${r.risk} risk`, ...(Array.isArray(r.reasons) ? r.reasons.slice(0, 5) : [])] : ["AI screening unavailable; needs your approval."];
+    const reasons = ev.decision === "needs_approval" ? [...ev.reasons, ...aiReasons] : aiReasons;
     await ctx.db.patch(s._id, { status: "needs_approval", review: r ?? undefined, reasons: [...s.reasons, ...reasons], updatedAt: now });
-    await appendJournal(ctx, m._id, "system", "spend.escalated", { spendId, risk: r?.risk ?? null });
-    await notify(ctx, m.ownerId, {
-      kind: "spend.needs_approval",
-      title: `Approve ${formatCents(s.amountCents, s.currency)}?`,
-      body: `${m.policy.title}: ${reasons.join("; ").slice(0, 180)}`,
-      stream: m._id,
-    });
+    await appendJournal(ctx, m._id, "system", "spend.escalated", { spendId, risk: r?.risk ?? null, guard: ev.decision });
+    await notifyNeedsApproval(ctx, m, s, reasons.join("; "));
+  },
+});
+
+/** Cron: a spend the screener never answered (crash, outage) goes to the owner instead of waiting forever. */
+export const sweepScreening = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    // Oldest first, so anything past the timeout is at the front.
+    const screening = await ctx.db.query("spends").withIndex("by_status", (q) => q.eq("status", "screening")).take(200);
+    for (const s of screening) {
+      if (now - s.createdAt < SCREENING_TIMEOUT_MS) continue;
+      const m = await ctx.db.get(s.mandateId);
+      if (!m) continue;
+      const why = "AI screening timed out";
+      await ctx.db.patch(s._id, { status: "needs_approval", reasons: [...s.reasons, why], updatedAt: now });
+      await appendJournal(ctx, m._id, "system", "spend.escalated", { spendId: s._id, risk: null, reason: why });
+      await notifyNeedsApproval(ctx, m, s, why);
+    }
   },
 });
 

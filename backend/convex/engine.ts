@@ -25,12 +25,13 @@ import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import { internalMutation, mutation, type MutationCtx } from "./_generated/server";
+import { returnStrayFunds } from "./effects";
 import { loadContract, requireRole, requireUserId } from "./lib/authz";
 import { fail } from "./lib/errors";
 import { actorUser, appendJournal, type Actor } from "./lib/journal";
 import { postLedger } from "./lib/ledger";
 import { notify, notifyStaff } from "./lib/notify";
-import { enqueueEffect, hasOpenEffects } from "./lib/outbox";
+import { enqueueEffect, findEffectByRef, hasOpenEffects } from "./lib/outbox";
 
 const HOUR = 3_600_000;
 
@@ -201,7 +202,8 @@ export async function resumeContract(ctx: MutationCtx, contractId: Id<"contracts
   if (c.status !== "frozen") fail("INVALID_STATE", "Contract is not frozen.");
   const now = Date.now();
   const fundsTaken = Boolean(c.funding?.authorizationId) || (c.funding?.captures.length ?? 0) > 0;
-  const status = c.machine?.closed ? "settling" : c.machine?.activated ? "active" : fundsTaken ? "settling" : "awaiting_funding";
+  // Cancelling is final: a cancelled contract frozen later (say, a dispute on a returned checkout) stays cancelled.
+  const status = c.cancelledAt ? "cancelled" : c.machine?.closed ? "settling" : c.machine?.activated ? "active" : fundsTaken ? "settling" : "awaiting_funding";
   const effects = await ctx.db
     .query("effects")
     .withIndex("by_stream_seq", (q) => q.eq("stream", c._id))
@@ -212,7 +214,9 @@ export async function resumeContract(ctx: MutationCtx, contractId: Id<"contracts
   }
   await ctx.db.patch(c._id, { status, frozen: undefined, updatedAt: now });
   await appendJournal(ctx, c._id, actor, "contract.resumed", { note, status, compensating: !c.machine?.activated && fundsTaken });
-  if (!c.machine?.activated && fundsTaken && c.funding) {
+  // An earlier resume already queued the compensation; its failed effects were just reset to retry.
+  const compensated = effects.some((e) => e.ref === "compensation");
+  if (!c.machine?.activated && fundsTaken && c.funding && !compensated) {
     // Never activated: give the money back.
     if (c.funding.authorizationId && c.funding.runtimeMode === "authorize") {
       await enqueueEffect(ctx, { stream: c._id, streamKind: "contract", kind: "void_authorization", params: {}, ref: "compensation" });
@@ -319,7 +323,12 @@ export async function checkSettled(ctx: MutationCtx, contractId: Id<"contracts">
   await notify(ctx, c.payeeId, n);
 }
 
-/** Called by funding once PayPal confirms the authorization or capture. Idempotent. */
+/**
+ * Called by funding once PayPal confirms the authorization or capture. Idempotent.
+ * Money that arrives on a checkout the contract no longer waits for (reset or
+ * replaced, or the contract cancelled while PayPal was working) is returned
+ * instead: `returned: true`.
+ */
 export const activate = internalMutation({
   args: {
     contractId: v.id("contracts"),
@@ -333,9 +342,23 @@ export const activate = internalMutation({
   },
   handler: async (ctx, a) => {
     const c = await loadContract(ctx, a.contractId);
+    const isCurrent = c.funding?.orderId === a.orderId;
+    const isAbandoned = c.funding?.abandonedOrderIds?.includes(a.orderId) ?? false;
+    // Never keep or refund money on an order this contract did not create.
+    if (!isCurrent && !isAbandoned) fail("CONFLICT", "PayPal order does not belong to this contract.");
+    if (!isCurrent || c.status === "cancelled" || c.status === "awaiting_funding") {
+      await returnStrayFunds(ctx, {
+        stream: c._id,
+        streamKind: "contract",
+        authorizationId: a.authorizationId,
+        captureId: a.captureId,
+        amountCents: a.amountCents,
+        reason: isCurrent ? `Contract is ${c.status}` : "The PayPal checkout was closed",
+      });
+      return { status: c.status, returned: true };
+    }
     if (c.status === "active" || c.status === "settling" || c.status === "settled") return { status: c.status };
     if (c.status !== "funding" || !c.funding || !c.ir) fail("INVALID_STATE", `Contract is ${c.status}, not funding.`);
-    if (c.funding.orderId !== a.orderId) fail("CONFLICT", "PayPal order does not belong to this contract.");
     const now = Date.now();
 
     // Re-check the approval chain at the moment money becomes committed.
@@ -478,8 +501,11 @@ export const authorizationMaintenance = internalMutation({
       if (!f || f.runtimeMode !== "authorize" || f.converting || !f.expiresAt || !c.machine?.activated) continue;
       if (f.expiresAt - now > 24 * HOUR) continue;
       if (f.authorizationCents - sumCaptured(f) <= 0) continue;
-      // Settling contracts only need protection while captures are still queued; the void handles the rest.
-      if (c.status === "settling" && c.ledger.releasedCents + c.ledger.feesCents <= sumCaptured(f)) continue;
+      // A closed machine (settling, or frozen after closing) only needs protection while captures are
+      // still queued; the void, or the hold lapsing, handles the rest.
+      if (c.machine.closed && c.ledger.releasedCents + c.ledger.feesCents <= sumCaptured(f)) continue;
+      // One attempt per contract: a failed protective capture waits for an arbiter (resume retries it).
+      if (await findEffectByRef(ctx, c._id, "expiry_guard")) continue;
       // runtimeMode flips to escrow only when the protective capture succeeds (effects.ts).
       await ctx.db.patch(c._id, { funding: { ...f, converting: true }, updatedAt: now });
       await enqueueEffect(ctx, { stream: c._id, streamKind: "contract", kind: "protective_capture", params: {}, ref: "expiry_guard" });
