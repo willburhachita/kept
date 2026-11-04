@@ -15,6 +15,8 @@ export default defineConfig({
           name: "backend",
           include: ["backend/tests/**/*.test.ts"],
           environment: "edge-runtime",
+          // Full lifecycles (verify, fund, capture, pay out) take a few seconds under parallel load.
+          testTimeout: 30_000,
           server: { deps: { inline: ["convex-test"] } },
         },
       },

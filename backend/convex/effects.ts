@@ -51,9 +51,9 @@ interface StreamContext {
 
 /**
  * Context for executing an effect, or null when the stream may not move money right now.
- * Every other status may run: stray returns (returnStrayFunds) execute on cancelled,
- * awaiting_funding or funding contracts and revoked, awaiting_funding or funding
- * mandates, whose funding _beginOrder already initialized.
+ * Only frozen streams wait. Any other status runs, so stray returns (returnStrayFunds)
+ * execute on cancelled, awaiting_funding or funding contracts and on revoked,
+ * awaiting_funding or funding mandates, whose funding _beginOrder already initialized.
  */
 async function streamContext(ctx: MutationCtx, e: Doc<"effects">): Promise<StreamContext | null> {
   if (e.streamKind === "contract") {

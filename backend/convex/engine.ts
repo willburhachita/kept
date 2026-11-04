@@ -498,13 +498,14 @@ export const authorizationMaintenance = internalMutation({
     ];
     for (const c of candidates) {
       const f = c.funding;
-      if (!f || f.runtimeMode !== "authorize" || f.converting || !f.expiresAt || !c.machine?.activated) continue;
+      // A voided hold has nothing left to capture (the capture would only fail).
+      if (!f || f.runtimeMode !== "authorize" || f.converting || f.voided || !f.expiresAt || !c.machine?.activated) continue;
       if (f.expiresAt - now > 24 * HOUR) continue;
       if (f.authorizationCents - sumCaptured(f) <= 0) continue;
-      // A closed machine (settling, or frozen after closing) only needs protection while captures are
-      // still queued; the void, or the hold lapsing, handles the rest.
-      if (c.machine.closed && c.ledger.releasedCents + c.ledger.feesCents <= sumCaptured(f)) continue;
-      // One attempt per contract: a failed protective capture waits for an arbiter (resume retries it).
+      // Settling contracts only need protection while captures are still queued; the void handles the rest.
+      if (c.status === "settling" && c.ledger.releasedCents + c.ledger.feesCents <= sumCaptured(f)) continue;
+      // One attempt per contract: fail() resets `converting`, so without this a failed protective
+      // capture would be re-enqueued every run. It waits for an arbiter instead (resume retries it).
       if (await findEffectByRef(ctx, c._id, "expiry_guard")) continue;
       // runtimeMode flips to escrow only when the protective capture succeeds (effects.ts).
       await ctx.db.patch(c._id, { funding: { ...f, converting: true }, updatedAt: now });
