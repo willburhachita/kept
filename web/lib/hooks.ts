@@ -70,6 +70,11 @@ export function useInView<T extends HTMLElement>(threshold = 0.2) {
   useEffect(() => {
     const el = ref.current;
     if (!el || inView) return;
+    // Background tabs, prerendering and old browsers: show everything, skip the animation.
+    if (document.visibilityState !== "visible" || typeof IntersectionObserver === "undefined" || el.getBoundingClientRect().top < window.innerHeight) {
+      setInView(true);
+      return;
+    }
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry?.isIntersecting) {
