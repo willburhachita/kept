@@ -4,33 +4,39 @@ The single source of truth for anyone building screens in `web/`. Read it before
 
 ## The look in one sentence
 
-**Lint Studios' editorial calm with PayPal's confidence.** Inter with tight tracking, white cards on a soft grey canvas, black statement blocks, real photography of real people, numbers set like a bank statement, and PayPal blue as the only accent color.
+**Bold, clean, confident.** Inter at weight 600 with very tight tracking, white 25px cards on a soft grey canvas, black sections, generous space, and PayPal blue as the only accent color. No emojis, no decorative gradients, no stock 3D. The one illustration is our own: the generated `StateGraph` (every possible outcome, one proved path), used on dark panels.
 
-It must not look "AI-generated": no purple gradients, no glowing blobs, no emoji, no icon in every heading, no centered-everything hero with three identical feature cards. Use asymmetric editorial layouts, generous whitespace, and real content (real numbers from the backend, real example deals).
+Signature moves:
+
+- A dark inset hero panel (8px from the edges, 25px corners) with a giant `Kept.` wordmark.
+- Two-tone headings: the lead in ink, the tail in grey (`<Statement lead tail />`).
+- Sections laid out with `<SectionGrid label="...">`: a small plain label column on the left, content on the right.
+- Numbered rows that open with a + on black sections, and white rounded FAQ rows with a black round toggle (`components/landing/accordion.tsx`).
+- Big numbers in a row between hairlines, set at weight 600.
+- Keep: the floating glass pill navigation and the `Kept.` logo with the blue full stop.
 
 ## Tokens (Tailwind v4 classes, defined in `app/globals.css`)
 
 | Purpose | Class |
 |---|---|
 | Page background | `bg-canvas` (#f5f5f5) |
-| Cards | `bg-surface` (white), `rounded-card` (20px), no border, no shadow (flat like Lint) |
-| Statement blocks | `bg-ink text-white` (#0a0a0a) |
-| Text | `text-ink` (primary), `text-ink-2` (body), `text-muted` (#7a7a7a, secondary), `text-faint` (#a3a3a3, tertiary / faded statement tails) |
-| Lines | `border-line` (#e5e5e5), `border-line-2` (#d4d4d4) |
-| Accent | `text-pp` / `bg-pp` (PayPal #0066f5), `text-pp-deep` (#002991), `bg-pp-tint` (8% blue: secondary buttons, info), `text-pp-sky` (#60cdff on dark) |
+| Cards | `bg-surface rounded-card` (white, 25px corners), flat |
+| Dark sections | `bg-ink text-white` (#0a0a0a) |
+| Text | `text-ink` (primary), `text-ink-2` (body), `text-muted` (#6b6b6b, secondary), `text-faint` (#a3a3a3, heading tails) |
+| Lines | `border-line` (#e0e0e0), `border-line-2` (#d4d4d4) |
+| Accent | `text-pp` / `bg-pp` (PayPal #0066f5), `text-pp-deep`, `bg-pp-tint` (secondary buttons, info), `text-pp-sky` (on dark) |
 | States | `ok` / `warn` / `bad` with `-tint` backgrounds (`bg-ok-tint text-ok`) |
-| Floating chrome | `glass` (white 74% + blur) and `shadow-float` |
-| Small caps labels | `eyebrow` (12px, uppercase, muted) |
+| Floating chrome | `glass` + `shadow-float` (the pill nav) |
+| Labels | `eyebrow` (14px, weight 500, muted, sentence case) |
 | Numbers | `tabular` (tabular figures) on every amount, counter, timer |
-| Motion | `animate-rise` (fade + 16px rise), `animate-fade`; respect reduced motion (global rule exists) |
+| Motion | `animate-rise`, `animate-fade`; reduced motion is respected globally |
 
 ## Typography
 
 - Inter Variable everywhere (`font-sans`), JetBrains Mono for hashes, ids and code (`font-mono`).
-- Headings are weight 400-500, never bold, tracking `-0.04em` to `-0.045em` (the base layer already applies `-0.04em` to h1-h5). Body tracking is `-0.018em` (on `body`).
-- Display: `text-[clamp(2.5rem,6vw,4.75rem)] leading-[1.02] tracking-[-0.05em]`.
-- Section statements: use `<Statement lead=… tail=…/>`: the tail fades to `text-faint` (Lint's signature move; PayPal uses the same fade on stacked lists).
-- Labels: `<SectionLabel index="01">How it works</SectionLabel>` renders "(01) · HOW IT WORKS".
+- Headings are weight 600 with tracking `-0.05em` (the base layer applies both to h1-h5). Body tracking is `-0.02em`.
+- Sizes: hero wordmark `clamp(5.5rem,19vw,15.5rem)` bold; section headings `clamp(2rem,3.8vw,3.25rem)`; giant single words (`FAQ`, the footer call to action) up to 9rem.
+- Section headings: `<Statement lead=… tail=…/>`. Labels: `<SectionLabel>What we do</SectionLabel>` (plain text, no numbering).
 - The wordmark is `Kept.` (bold, blue full stop): `<Logo />`.
 
 ## Components (import from `@/components/...`)
@@ -52,9 +58,10 @@ It must not look "AI-generated": no purple gradients, no glowing blobs, no emoji
 
 ## Layout patterns
 
+- Sections: `<SectionGrid label>` inside the container.
 - Page container: `mx-auto max-w-6xl px-4 sm:px-5`. Public sections: `py-24 sm:py-32`.
-- Bento grids: `grid gap-3 md:grid-cols-6` with cards spanning 2/3/4 columns; mix white, black and photo cards.
-- Photo cards: `relative overflow-hidden rounded-card` + `<img>` `object-cover` + `bg-gradient-to-t from-black/75` overlay, white text bottom-left, glass chips top-left (`Chip tone="glass-dark"`), round arrow button bottom-right.
+- Card grids: `grid gap-3` of white cards with an outlined round icon top-left and the title at the bottom.
+- Photo cards: the image in a 25px rounded frame with glass chips; title and one line of copy underneath.
 - Numbers lead: show the amount big (`Stat`) and the explanation small beneath.
 - Photography: `photo(PHOTOS.x, width)` from `lib/site.ts` (free Unsplash images). Always meaningful `alt` text.
 

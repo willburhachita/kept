@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-/** "Kept." wordmark with the blue full stop, plus an optional tagline (Lint's two-line lockup). */
+/** "Kept." wordmark with the blue full stop, plus an optional tagline. */
 export function Logo({ href = "/", tagline = false, dark = false, className }: { href?: string | null; tagline?: boolean; dark?: boolean; className?: string }) {
   const mark = (
     <span className={cn("inline-flex flex-col leading-none", className)}>

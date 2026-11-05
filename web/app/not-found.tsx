@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 export default function NotFound() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-5 text-center">
-      <p className="eyebrow">(404) · Not found</p>
+      <p className="eyebrow">Page not found</p>
       <h1 className="mt-4 max-w-xl text-[clamp(2rem,5vw,3.25rem)] leading-[1.08] tracking-[-0.045em]">
         This page doesn&apos;t exist. <span className="text-faint">If someone sent you this link to pay, be careful.</span>
       </h1>

@@ -81,7 +81,7 @@ export function Button(props: ButtonProps | LinkProps) {
   );
 }
 
-/** Round icon button (Lint's arrow buttons on photo cards). */
+/** Round icon button (arrow buttons on photo cards). */
 export function IconButton({
   className,
   label,

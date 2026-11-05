@@ -11,7 +11,7 @@ const tones: Record<CardTone, string> = {
   blue: "bg-pp text-white",
 };
 
-/** Borderless white card on the grey canvas (Lint's bento tiles). */
+/** Borderless white card on the grey canvas. */
 export function Card({ tone = "light", className, ...rest }: HTMLAttributes<HTMLDivElement> & { tone?: CardTone }) {
   return <div className={cn("rounded-card p-6", tones[tone], className)} {...rest} />;
 }

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 /*
- * Kept design tokens. Editorial monochrome (Inter, tight tracking, white cards on
- * a soft grey canvas, black statement blocks) with PayPal's blue as the only accent.
+ * Kept design tokens. Bold Inter headings, white 25px cards on a soft grey canvas,
+ * black sections, PayPal blue as the only accent.
  */
 @theme {
   --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -13,9 +13,9 @@
   --color-sunken: #fafafa;
   --color-ink: #0a0a0a;
   --color-ink-2: #212121;
-  --color-muted: #7a7a7a;
+  --color-muted: #6b6b6b;
   --color-faint: #a3a3a3;
-  --color-line: #e5e5e5;
+  --color-line: #e0e0e0;
   --color-line-2: #d4d4d4;
 
   --color-pp: #0066f5;
@@ -31,13 +31,13 @@
   --color-bad: #c22f0f;
   --color-bad-tint: #fbe8e3;
 
-  --radius-card: 1.25rem;
+  --radius-card: 1.5625rem;
   --radius-field: 0.875rem;
 
   --tracking-tightest: -0.05em;
-  --tracking-display: -0.04em;
+  --tracking-display: -0.05em;
   --tracking-snug: -0.03em;
-  --tracking-body: -0.018em;
+  --tracking-body: -0.02em;
   --tracking-caps: 0.01em;
 
   --shadow-float: 0 1px 0 rgb(0 0 0 / 0.03), 0 18px 40px -20px rgb(0 0 0 / 0.28);
@@ -90,7 +90,7 @@
   }
   h1, h2, h3, h4, h5 {
     letter-spacing: var(--tracking-display);
-    font-weight: 500;
+    font-weight: 600;
     text-wrap: balance;
   }
   p { text-wrap: pretty; }
@@ -135,12 +135,12 @@
   -webkit-backdrop-filter: saturate(1.4) blur(16px);
 }
 
-/* "(01) · How it works" section labels. */
+/* Small section and card labels ("What we do"). */
 @utility eyebrow {
-  font-size: 0.75rem;
-  line-height: 1rem;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
   color: var(--color-muted);
 }
 

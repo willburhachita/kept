@@ -14,7 +14,7 @@ const tones: Record<Tone | "glass" | "glass-dark", string> = {
   "glass-dark": "bg-white/15 text-white backdrop-blur",
 };
 
-/** Small pill label (Lint's "Event · Stills" chips). */
+/** Small pill label (tags on photo cards, statuses). */
 export function Chip({
   tone = "neutral",
   dot,

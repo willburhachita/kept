@@ -1,26 +1,17 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-/** "(01) · How it works" (Lint's numbered section labels). */
-export function SectionLabel({ index, children, className, dark }: { index?: string; children: ReactNode; className?: string; dark?: boolean }) {
-  return (
-    <p className={cn("eyebrow flex items-center gap-2", dark && "text-white/55", className)}>
-      {index && <span className="tabular">({index})</span>}
-      {index && <span aria-hidden="true">·</span>}
-      <span>{children}</span>
-    </p>
-  );
+/** Small plain section label ("What we do"). `index` is accepted but not shown: labels stay plain. */
+export function SectionLabel({ children, className, dark }: { index?: string; children: ReactNode; className?: string; dark?: boolean }) {
+  return <p className={cn("text-[15px] font-medium tracking-[-0.03em]", dark ? "text-white/55" : "text-muted", className)}>{children}</p>;
 }
 
-/**
- * Big editorial statement whose tail fades to grey ("…the way the room
- * actually felt — alive, unrepeatable…").
- */
+/** Bold two-tone heading: the lead in ink, the tail in grey on the next beat. */
 export function Statement({ lead, tail, className, dark, as: Tag = "h2" }: { lead: ReactNode; tail?: ReactNode; className?: string; dark?: boolean; as?: "h1" | "h2" | "p" }) {
   return (
-    <Tag className={cn("text-[clamp(1.75rem,3.4vw,2.75rem)] font-normal leading-[1.18] tracking-[-0.04em]", dark ? "text-white" : "text-ink", className)}>
+    <Tag className={cn("text-[clamp(2rem,3.8vw,3.25rem)] font-semibold leading-[1.08] tracking-[-0.05em]", dark ? "text-white" : "text-ink", className)}>
       {lead}
-      {tail && <span className={cn(dark ? "text-white/35" : "text-faint")}> {tail}</span>}
+      {tail && <span className={cn(dark ? "text-white/40" : "text-[#a3a3a3]")}> {tail}</span>}
     </Tag>
   );
 }
@@ -31,8 +22,8 @@ export function PageHeader({ eyebrow, title, description, actions, className }: 
     <header className={cn("mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between", className)}>
       <div className="min-w-0">
         {eyebrow && <div className="mb-3">{eyebrow}</div>}
-        <h1 className="text-[clamp(1.875rem,3vw,2.5rem)] leading-[1.1] tracking-[-0.045em]">{title}</h1>
-        {description && <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted">{description}</p>}
+        <h1 className="text-[clamp(2rem,3.2vw,2.75rem)] font-semibold leading-[1.05] tracking-[-0.05em]">{title}</h1>
+        {description && <p className="mt-2.5 max-w-2xl text-[15px] leading-relaxed text-muted">{description}</p>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
     </header>
@@ -43,9 +34,19 @@ export function PageHeader({ eyebrow, title, description, actions, className }: 
 export function Stat({ label, value, sub, className, dark }: { label: ReactNode; value: ReactNode; sub?: ReactNode; className?: string; dark?: boolean }) {
   return (
     <div className={cn("min-w-0", className)}>
-      <p className={cn("text-sm", dark ? "text-white/55" : "text-muted")}>{label}</p>
-      <p className="tabular mt-1 truncate text-[clamp(1.5rem,2.4vw,2rem)] leading-tight tracking-[-0.045em]">{value}</p>
+      <p className={cn("text-sm font-medium", dark ? "text-white/55" : "text-muted")}>{label}</p>
+      <p className="tabular mt-1.5 truncate text-[clamp(1.625rem,2.6vw,2.25rem)] font-semibold leading-tight tracking-[-0.05em]">{value}</p>
       {sub && <p className={cn("mt-1 text-xs", dark ? "text-white/45" : "text-faint")}>{sub}</p>}
+    </div>
+  );
+}
+
+/** Two-column section: a narrow label column on the left, content on the right. */
+export function SectionGrid({ label, children, className, dark }: { label?: ReactNode; children: ReactNode; className?: string; dark?: boolean }) {
+  return (
+    <div className={cn("grid gap-6 md:grid-cols-[minmax(0,11rem)_minmax(0,1fr)] md:gap-10", className)}>
+      <div className="md:pt-3">{label && <SectionLabel dark={dark}>{label}</SectionLabel>}</div>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }

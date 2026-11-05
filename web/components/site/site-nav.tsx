@@ -18,7 +18,7 @@ const LINKS = [
 ];
 
 /**
- * Floating glass nav (Lint). Transparent with white text over a dark hero
+ * Floating glass pill nav. Transparent with white text over a dark hero
  * (`overDark`), turning into a white pill once the page scrolls.
  */
 export function SiteNav({ overDark = false }: { overDark?: boolean }) {
@@ -46,7 +46,6 @@ export function SiteNav({ overDark = false }: { overDark?: boolean }) {
       >
         <div className="flex items-center gap-3">
           <Logo dark={dark} />
-          <span className={cn("hidden text-[13px] tracking-[-0.02em] md:inline", dark ? "text-white/70" : "text-muted")}>Promises x PayPal</span>
         </div>
         <ul className="hidden items-center gap-1 lg:flex">
           {LINKS.map((l) => {
@@ -56,7 +55,7 @@ export function SiteNav({ overDark = false }: { overDark?: boolean }) {
                 <Link
                   href={l.href}
                   className={cn(
-                    "relative rounded-full px-3 py-2 text-[13px] uppercase tracking-[0.01em] transition-colors",
+                    "relative rounded-full px-3 py-2 text-[15px] font-semibold tracking-[-0.02em] transition-colors",
                     dark ? "text-white/75 hover:text-white" : "text-muted hover:text-ink",
                     active && (dark ? "text-white" : "text-ink"),
                   )}
