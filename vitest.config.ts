@@ -11,6 +11,15 @@ export default defineConfig({
         },
       },
       {
+        // Pure browser-side logic (no React): tamper checks, policy backtests.
+        resolve: { alias: { "@": new URL("./web", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1") } },
+        test: {
+          name: "web",
+          include: ["web/tests/**/*.test.ts"],
+          environment: "node",
+        },
+      },
+      {
         test: {
           name: "backend",
           include: ["backend/tests/**/*.test.ts"],

@@ -3,6 +3,7 @@
 import type { Currency, VerificationReport } from "@kept/core";
 import { useQuery } from "convex/react";
 import { ArrowLeft, Snowflake } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Suspense } from "react";
@@ -20,6 +21,9 @@ import { Skeleton } from "@/components/ui/misc";
 import { RelativeTime } from "@/components/ui/time";
 import { api, type Id } from "@/lib/convex";
 import { contractStatus } from "@/lib/status";
+
+// AG Grid is large: load the money trail only on pages that show it.
+const MoneyTrail = dynamic(() => import("@/components/contract/money-trail").then((m) => m.MoneyTrail), { ssr: false, loading: () => <Skeleton className="h-96 rounded-card" /> });
 
 type Stage = "build" | "review" | "fund" | "live" | "cancelled";
 
@@ -165,6 +169,11 @@ function Room() {
           <ReceiptChain contractId={c._id} />
         </aside>
       </div>
+      {wasActivated && (
+        <div className="mt-4">
+          <MoneyTrail contractId={c._id} currency={currency} />
+        </div>
+      )}
     </>
   );
 }
