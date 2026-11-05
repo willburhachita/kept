@@ -60,7 +60,7 @@ For Claude Desktop or Cursor:
 | `verify_contract`, `explain_contract`, `contract_language`, `example_contracts` | Write and prove payment contracts | nothing (offline) |
 | `verify_mandate`, `check_spend` | Check a policy or a purchase against one | nothing (offline) |
 | `verify_proof_pack` | Independently audit a settled promise | nothing (offline) |
-| `get_mandate`, `request_spend`, `get_spend` | Spend inside a budget | a mandate token |
+| `get_mandate`, `find_products`, `request_spend`, `get_spend` | Find and buy inside a budget | a mandate token |
 | `list_contracts`, `get_contract`, `create_contract`, `compile_contract`, `approve_contract`, `contract_proof` | Work with promises | an API key |
 
 ## Agent API (REST)
@@ -70,8 +70,19 @@ For Claude Desktop or Cursor:
 | GET | `{{API}}/agent/v1/mandate` | What the agent may do right now |
 | POST | `{{API}}/agent/v1/spends` | `{ merchantEmail, merchantName?, amountCents, currency?, description, idempotencyKey }` |
 | GET | `{{API}}/agent/v1/spends/{id}` | One spend's status |
+| POST | `{{API}}/agent/v1/products/search` | `{ query, limit? }`: only offers the budget allows |
 
 Authenticate with `Authorization: Bearer mt_...`. A `denied` answer is final; don't retry it with a new key.
+
+## Shopping inside a budget
+
+`find_products` searches real products through [Channel3](https://channel3.ai). The budget isn't just checked after the search, it shapes the search:
+
+1. **The policy becomes the filters.** The price ceiling is the per-purchase limit or what's left of the budget, whichever is lower. The retailers are the merchant allowlist. Only in-stock, new items.
+2. **Every offer meets the purchase guard.** Each retailer offer is checked exactly as a purchase would be: budget, per-purchase cap, allowlist, purchases left, hourly rate, expiry.
+3. **The agent sees only what it may buy.** Allowed offers (and ones that would need your approval) come back with a ready-made `purchase` object to pass to `request_spend`. Blocked offers are hidden and only counted, by reason.
+
+The owner's budget page has a preview of the same search that also shows the hidden offers and why. The decision is checked again when the agent calls `request_spend`, so a price change between search and purchase can't slip through. In sandbox, Kept pays the retailer's PayPal stand-in address (an allowlisted PayPal email on the retailer's domain wins).
 
 ## Safety notes
 

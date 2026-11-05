@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "-w", "@kept/web"],
       "port": 3000
+    },
+    {
+      "name": "web-webpack",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "-w", "@kept/web", "--", "--webpack"],
+      "port": 3000
     }
   ]
 }

@@ -38,6 +38,10 @@ export const env = {
       live,
     };
   },
+  /** Channel3 product search for agent budgets (optional). */
+  channel3Key(): string | null {
+    return process.env.CHANNEL3_API_KEY ?? null;
+  },
   anthropicKey(): string | null {
     return process.env.ANTHROPIC_API_KEY ?? null;
   },

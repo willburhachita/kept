@@ -5,10 +5,12 @@
  *   GET  /agent/v1/mandate
  *   POST /agent/v1/spends      {merchantEmail, merchantName, amountCents, currency, description, idempotencyKey}
  *   GET  /agent/v1/spends/{id}
+ *   POST /agent/v1/products/search {query, limit}  (only offers the mandate allows)
  */
 import type { HttpRouter } from "convex/server";
 import { internal } from "../_generated/api";
 import { httpAction, type ActionCtx } from "../_generated/server";
+import { agentProductSearch } from "../shopping";
 import { fail } from "../lib/errors";
 import { bearer, hashSecret } from "../lib/secrets";
 import { CORS, errorJson, errorResponse, json, readJson } from "./public";
@@ -66,6 +68,10 @@ const handler = httpAction(async (ctx, req) => {
     const tokenHash = agentTokenHash(req);
     if (req.method === "GET" && path === "/agent/v1/mandate") return json(200, await agentMandate(ctx, tokenHash), CORS);
     if (req.method === "POST" && path === "/agent/v1/spends") return json(200, await agentSpend(ctx, tokenHash, parseSpendInput(await readJson(req, 16 * 1024))), CORS);
+    if (req.method === "POST" && path === "/agent/v1/products/search") {
+      const b = await readJson(req, 8 * 1024);
+      return json(200, await agentProductSearch(ctx, tokenHash, typeof b.query === "string" ? b.query : "", b.limit), CORS);
+    }
     const m = /^\/agent\/v1\/spends\/([^/]+)$/.exec(path);
     if (req.method === "GET" && m) return json(200, await agentGetSpend(ctx, tokenHash, decodeURIComponent(m[1])), CORS);
     return errorJson(404, "NOT_FOUND", "No such endpoint.", CORS);

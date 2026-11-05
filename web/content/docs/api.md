@@ -4,6 +4,8 @@ Base URL: `{{API}}`. All bodies are JSON. Authenticate with an API key from **Se
 curl {{API}}/v1/me -H "Authorization: Bearer sk_..."
 ```
 
+The full API is described in an [OpenAPI 3.1 spec](/openapi.yaml): import it into Postman, generate a client, or point your AI coding assistant at it.
+
 ## Conventions
 
 - **Money** is integer cents (`30000` = $300.00). Views also return formatted strings; display those.

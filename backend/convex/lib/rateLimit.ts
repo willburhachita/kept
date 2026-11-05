@@ -19,6 +19,8 @@ export const LIMITS = {
   apiRequest: { capacity: 120, refillPerHour: 3600 },
   verify: { capacity: 60, refillPerHour: 600 },
   secretIssue: { capacity: 10, refillPerHour: 20 },
+  /** Channel3 searches cost credits (1,000 a month on the free tier). */
+  productSearch: { capacity: 15, refillPerHour: 60 },
 } satisfies Record<string, Bucket>;
 
 export async function rateLimit(ctx: MutationCtx, key: string, bucket: Bucket, cost = 1): Promise<void> {

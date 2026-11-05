@@ -1,0 +1,924 @@
+openapi: 3.1.0
+info:
+  title: Kept API
+  version: 1.0.0
+  summary: Payment promises proved before anyone pays, held on PayPal, released only when kept.
+  description: |
+    Create, prove, fund and settle payment promises from your own platform, and give AI agents
+    spending budgets they can't exceed.
+
+    * Authenticate with an API key from Settings: `Authorization: Bearer sk_test_...`.
+      Keys are server-side only: authenticated routes send no CORS headers, so a key can't be
+      used from a browser page.
+    * Amounts are integer cents (`amountCents`). Currencies are ISO 4217 codes.
+    * Every state change is a signed, hash-chained journal entry. Fetch it with
+      `GET /contracts/{contractId}/journal` and verify it yourself against
+      `/.well-known/kept-keys.json` (the `@kept/core` package does this in a few lines).
+    * Errors are always `{ "error": { "code": "...", "message": "..." } }`.
+  license:
+    name: MIT
+    identifier: MIT
+  contact:
+    name: Kept
+    url: https://github.com/willburhachita/kept
+servers:
+  - url: https://befitting-mosquito-713.convex.site/v1
+    description: Sandbox (PayPal sandbox; no real money moves)
+security:
+  - apiKey: []
+tags:
+  - name: Account
+  - name: Verification
+    description: Run the exhaustive verifier on contract terms without creating anything.
+  - name: Contracts
+    description: Two-party payment promises held on PayPal.
+  - name: Evidence
+    description: Deliveries against a contract's evidence slots, and the decisions on them.
+  - name: Mandates
+    description: Spending budgets for AI agents, held as one PayPal authorization.
+  - name: Webhooks
+  - name: Transparency
+    description: Public, signed Merkle checkpoints over every journal entry.
+
+paths:
+  /me:
+    get:
+      tags: [Account]
+      operationId: getMe
+      summary: The account that owns this API key
+      responses:
+        "200":
+          description: The account
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+
+  /verify:
+    post:
+      tags: [Verification]
+      operationId: verifyTerms
+      summary: Prove contract terms
+      description: Explores every reachable state of the terms and checks that money is conserved, nothing gets stuck, every promise holds and PayPal's time limits are respected. Shares the per-user verification rate limit.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ir]
+              properties:
+                ir:
+                  $ref: "#/components/schemas/ContractTerms"
+                feeBps:
+                  type: integer
+                  minimum: 0
+                  maximum: 2000
+                  description: Platform fee in basis points to include in the bounds. Defaults to 0.
+      responses:
+        "200":
+          description: The verdict. `valid` is false when the terms don't parse.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    required: [valid, report]
+                    properties:
+                      valid: { const: true }
+                      report: { $ref: "#/components/schemas/VerificationReport" }
+                      warnings: { type: array, items: { $ref: "#/components/schemas/Issue" } }
+                  - type: object
+                    required: [valid, issues]
+                    properties:
+                      valid: { const: false }
+                      issues: { type: array, items: { $ref: "#/components/schemas/Issue" } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+
+  /contracts:
+    post:
+      tags: [Contracts]
+      operationId: createContract
+      summary: Create a contract
+      description: Start from a plain-English prompt (set `compile` to have Claude draft and prove the terms) or from terms you already have (`ir`). Returns a one-time invite link for the other side.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role:
+                  type: string
+                  enum: [funder, payee]
+                  description: Your side of the deal.
+                prompt:
+                  type: string
+                  maxLength: 4000
+                  example: Pay the designer $300. $100 now, $200 when she delivers the final logo as an SVG. Refund me if nothing arrives in 7 days.
+                counterpartyEmail:
+                  type: string
+                  format: email
+                  description: The invite only works for this email.
+                ir: { $ref: "#/components/schemas/ContractTerms" }
+                compile:
+                  type: boolean
+                  description: Draft terms from `prompt` with Claude, then prove them. Poll `GET /contracts/{contractId}/compile`.
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [contractId, inviteToken, inviteUrl, compiling]
+                properties:
+                  contractId: { type: string }
+                  inviteToken: { type: string, description: Shown once. }
+                  inviteUrl: { type: string, format: uri }
+                  compiling: { type: boolean }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+    get:
+      tags: [Contracts]
+      operationId: listContracts
+      summary: List your contracts
+      responses:
+        "200":
+          description: Contracts you are a party to, newest first
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/ContractSummary" } }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+
+  /contracts/{contractId}:
+    parameters: [{ $ref: "#/components/parameters/contractId" }]
+    get:
+      tags: [Contracts]
+      operationId: getContract
+      summary: Get a contract
+      responses:
+        "200":
+          description: The contract, its terms, verification and money ledger
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Contract" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /contracts/{contractId}/compile:
+    parameters: [{ $ref: "#/components/parameters/contractId" }]
+    post:
+      tags: [Contracts]
+      operationId: compileContract
+      summary: Draft and prove terms with Claude
+      description: Claude turns the prompt into terms, the verifier checks them, and Claude repairs the rules (never the promises) until they prove or the round limit is reached.
+      responses:
+        "200":
+          description: Started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  started: { type: boolean }
+                  poll: { type: string }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    get:
+      tags: [Contracts]
+      operationId: getCompileRun
+      summary: Latest compile run
+      responses:
+        "200":
+          description: The latest run with every draft, verdict and repair, or null
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - { type: "null" }
+                  - { type: object, additionalProperties: true }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /contracts/{contractId}/terms:
+    parameters: [{ $ref: "#/components/parameters/contractId" }]
+    put:
+      tags: [Contracts]
+      operationId: setTerms
+      summary: Replace the terms
+      description: Allowed until both sides approve. Changing terms clears earlier approvals; the new terms are verified before they are stored.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ir]
+              properties:
+                ir: { $ref: "#/components/schemas/ContractTerms" }
+      responses:
+        "200":
+          description: Stored
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /contracts/{contractId}/approve:
+    parameters: [{ $ref: "#/components/parameters/contractId" }]
+    post:
+      tags: [Contracts]
+      operationId: approveTerms
+      summary: Approve the exact proved terms
+      description: Pass the `termsHash` you showed your user. If the terms changed since, the approval is refused with CONFLICT, so nobody approves a different deal than the one they saw.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [termsHash]
+              properties:
+                termsHash: { type: string, pattern: "^[0-9a-f]{64}$" }
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [review, awaiting_funding] }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /contracts/{contractId}/fund:
+    parameters: [{ $ref: "#/components/parameters/contractId" }]
+    post:
+      tags: [Contracts]
+      operationId: startFunding
+      summary: Create the PayPal order for the hold
+      description: Returns PayPal's approval link. Send the payer there; when they return, call `/fund/confirm`.
+      responses:
+        "200":
+          description: The PayPal order
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  orderId: { type: string }
+                  approveUrl: { type: string, format: uri }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "502": { $ref: "#/components/responses/PayPalError" }
+  /contracts/{contractId}/fund/confirm:
+    parameters: [{ $ref: "#/components/parameters/contractId" }]
+    post:
+      tags: [Contracts]
+      operationId: confirmFunding
+      summary: Confirm the payer approved the hold
+      description: Authorizes (or captures, in escrow mode) the approved order and starts the contract's clock.
+      responses:
+        "200":
+          description: Funding result
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true, properties: { status: { type: string } } }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "502": { $ref: "#/components/responses/PayPalError" }
+  /contracts/{contractId}/fund/reset:
+    parameters: [{ $ref: "#/components/parameters/contractId" }]
+    post:
+      tags: [Contracts]
+      operationId: resetFunding
+      summary: Abandon an unapproved PayPal order and start over
+      responses:
+        "200":
+          description: Reset
+          content:
+            application/json:
+              schema: { type: object, properties: { status: { type: string } } }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "409": { $ref: "#/components/responses/Conflict" }
+  /contracts/{contractId}/cancel:
+    parameters: [{ $ref: "#/components/parameters/contractId" }]
+    post:
+      tags: [Contracts]
+      operationId: cancelContract
+      summary: Cancel before funding
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /contracts/{contractId}/uploads:
+    parameters: [{ $ref: "#/components/parameters/contractId" }]
+    post:
+      tags: [Evidence]
+      operationId: createUploadUrl
+      summary: Get a one-time URL to upload a delivery file
+      description: POST the file bytes to the returned URL; it answers with a `storageId` to pass to `POST /contracts/{contractId}/evidence`.
+      responses:
+        "200":
+          description: Upload URL
+          content:
+            application/json:
+              schema: { oneOf: [{ type: string, format: uri }, { type: object, additionalProperties: true }] }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+  /contracts/{contractId}/evidence:
+    parameters: [{ $ref: "#/components/parameters/contractId" }]
+    post:
+      tags: [Evidence]
+      operationId: submitEvidence
+      summary: Deliver against an evidence slot
+      description: Payee only, inside the slot's window. An AI examiner checks the delivery against the slot's criteria; it can only pass it into a challenge window or escalate it, never release money by itself.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [slotId]
+              properties:
+                slotId: { type: string }
+                storageId: { type: string }
+                fileName: { type: string }
+                text: { type: string }
+                url: { type: string, format: uri }
+      responses:
+        "200":
+          description: Submitted
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "409": { $ref: "#/components/responses/Conflict" }
+    get:
+      tags: [Evidence]
+      operationId: listEvidence
+      summary: Deliveries on this contract
+      responses:
+        "200":
+          description: Evidence with its review state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { type: object, additionalProperties: true } }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+
+  /evidence/{evidenceId}/{decision}:
+    parameters:
+      - name: evidenceId
+        in: path
+        required: true
+        schema: { type: string }
+      - name: decision
+        in: path
+        required: true
+        schema: { type: string, enum: [accept, reject, challenge, dispute] }
+        description: "`accept`, `reject` and `challenge` are the payer's; `dispute` is the payee's answer to a rejection."
+    post:
+      tags: [Evidence]
+      operationId: decideEvidence
+      summary: Accept, reject, challenge or dispute a delivery
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string, maxLength: 1000, description: Required for reject, challenge and dispute. }
+      responses:
+        "200":
+          description: Recorded
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /contracts/{contractId}/journal:
+    parameters:
+      - { $ref: "#/components/parameters/contractId" }
+      - name: limit
+        in: query
+        schema: { type: integer, minimum: 1, maximum: 500, default: 200 }
+    get:
+      tags: [Contracts]
+      operationId: getJournal
+      summary: The signed, hash-chained history
+      responses:
+        "200":
+          description: Entries, oldest first (the latest `limit` of them)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/JournalEntry" } }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+  /contracts/{contractId}/proof:
+    parameters: [{ $ref: "#/components/parameters/contractId" }]
+    get:
+      tags: [Contracts]
+      operationId: getProofPack
+      summary: Download the proof pack
+      description: Terms, verification report, every journal entry and the signing key, in one file anyone can verify offline.
+      responses:
+        "200":
+          description: The proof pack (`format` = `kept-proof-pack/v1`)
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true, properties: { format: { const: kept-proof-pack/v1 } } }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+
+  /invites/accept:
+    post:
+      tags: [Contracts]
+      operationId: acceptInvite
+      summary: Join a contract with an invite token
+      description: Only works for the email the invite was sent to.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token: { type: string }
+      responses:
+        "200":
+          description: Joined
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /mandates:
+    post:
+      tags: [Mandates]
+      operationId: createMandate
+      summary: Create an agent budget
+      description: The policy is validated and its caps are verified against simulated hostile agents before it can be funded.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [policy]
+              properties:
+                policy: { $ref: "#/components/schemas/MandatePolicy" }
+                prompt: { type: string, description: The plain-English request the policy came from (kept for the record). }
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  mandateId: { type: string }
+                  verified: { type: boolean }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+    get:
+      tags: [Mandates]
+      operationId: listMandates
+      summary: List your agent budgets
+      responses:
+        "200":
+          description: Budgets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { type: object, additionalProperties: true } }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+  /mandates/{mandateId}:
+    parameters: [{ $ref: "#/components/parameters/mandateId" }]
+    get:
+      tags: [Mandates]
+      operationId: getMandate
+      summary: Get an agent budget
+      responses:
+        "200":
+          description: Policy, money, purchase counts and funding state
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Mandate" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /mandates/{mandateId}/fund:
+    parameters: [{ $ref: "#/components/parameters/mandateId" }]
+    post:
+      tags: [Mandates]
+      operationId: startMandateFunding
+      summary: Create the PayPal order for the budget's hold
+      responses:
+        "200":
+          description: The PayPal order
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [orderId, approveUrl]
+                properties:
+                  orderId: { type: string }
+                  approveUrl: { type: string, format: uri }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "502": { $ref: "#/components/responses/PayPalError" }
+  /mandates/{mandateId}/fund/confirm:
+    parameters: [{ $ref: "#/components/parameters/mandateId" }]
+    post:
+      tags: [Mandates]
+      operationId: confirmMandateFunding
+      summary: Confirm the hold and switch the budget on
+      responses:
+        "200":
+          description: Funding result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+                  returned: { type: boolean, description: True if PayPal authorized after the budget stopped waiting; the hold is being voided. }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "502": { $ref: "#/components/responses/PayPalError" }
+  /mandates/{mandateId}/tokens:
+    parameters: [{ $ref: "#/components/parameters/mandateId" }]
+    post:
+      tags: [Mandates]
+      operationId: issueAgentToken
+      summary: Issue a token for an AI agent
+      description: The agent uses it with the agent API (`/agent/v1`) or the MCP server (`/mcp`). It can only spend within this budget's policy. Shown once.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label: { type: string, default: agent }
+                expiresInHours: { type: number }
+      responses:
+        "200":
+          description: The token (shown once)
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "409": { $ref: "#/components/responses/Conflict" }
+  /mandates/{mandateId}/revoke:
+    parameters: [{ $ref: "#/components/parameters/mandateId" }]
+    post:
+      tags: [Mandates]
+      operationId: closeMandate
+      summary: Close the budget and release the unused hold
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+  /mandates/{mandateId}/spends:
+    parameters: [{ $ref: "#/components/parameters/mandateId" }]
+    get:
+      tags: [Mandates]
+      operationId: listSpends
+      summary: Everything the agent asked to buy
+      responses:
+        "200":
+          description: Purchase requests, newest first
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Spend" } }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+  /spends/{spendId}/decide:
+    parameters:
+      - name: spendId
+        in: path
+        required: true
+        schema: { type: string }
+    post:
+      tags: [Mandates]
+      operationId: decideSpend
+      summary: Approve or decline a purchase above your approval line
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [approve]
+              properties:
+                approve: { type: boolean }
+                reason: { type: string, maxLength: 300, description: Shown to the agent. }
+      responses:
+        "200":
+          description: Decision recorded
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true, properties: { status: { type: string } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /webhooks/endpoints:
+    post:
+      tags: [Webhooks]
+      operationId: createWebhookEndpoint
+      summary: Receive every state change, signed
+      description: HTTPS only; private and local addresses are refused. Deliveries are signed with Standard Webhooks (HMAC-SHA256) and retried with backoff. Verify them with `verifyWebhook` from `@kept/sdk`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url: { type: string, format: uri, example: https://your-app.com/webhooks/kept }
+                events:
+                  type: array
+                  items: { type: string }
+                  description: Event types or groups; omit or `["*"]` for everything.
+      responses:
+        "200":
+          description: Created. The signing secret is shown once.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true, properties: { secret: { type: string } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+
+  /transparency/checkpoints:
+    get:
+      tags: [Transparency]
+      operationId: listCheckpoints
+      summary: Signed Merkle checkpoints (public)
+      security: []
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, default: 20 }
+      responses:
+        "200":
+          description: Latest checkpoints
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+  /transparency/proof/{entryHash}:
+    get:
+      tags: [Transparency]
+      operationId: getInclusionProof
+      summary: Prove a journal entry is in the public log (public)
+      security: []
+      parameters:
+        - name: entryHash
+          in: path
+          required: true
+          schema: { type: string, pattern: "^[0-9a-fA-F]{64}$" }
+      responses:
+        "200":
+          description: RFC 6962 inclusion proof against a signed checkpoint
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+components:
+  securitySchemes:
+    apiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: sk_test_...
+      description: Create a key in Settings. Keys are stored only as a SHA-256 hash and shown once.
+
+  parameters:
+    contractId:
+      name: contractId
+      in: path
+      required: true
+      schema: { type: string }
+    mandateId:
+      name: mandateId
+      in: path
+      required: true
+      schema: { type: string }
+
+  responses:
+    Ok:
+      description: Done
+      content:
+        application/json:
+          schema: { type: object, additionalProperties: true }
+    BadRequest:
+      description: INVALID_ARGUMENT or VERIFICATION_FAILED
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    Unauthenticated:
+      description: Missing, invalid or revoked API key
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    Forbidden:
+      description: You aren't allowed to do this (for example, an invite for a different email)
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    NotFound:
+      description: Not found, or not yours
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    Conflict:
+      description: INVALID_STATE or CONFLICT (for example, approving terms that changed)
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    RateLimited:
+      description: Too many requests; retry later
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    PayPalError:
+      description: PAYMENT_FAILED (PayPal refused or failed the call) or AI_FAILED
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          additionalProperties: true
+          properties:
+            code:
+              type: string
+              enum: [UNAUTHENTICATED, FORBIDDEN, NOT_FOUND, INVALID_ARGUMENT, VERIFICATION_FAILED, INVALID_STATE, CONFLICT, RATE_LIMITED, CONFIG_MISSING, PAYMENT_FAILED, AI_FAILED, METHOD_NOT_ALLOWED, INTERNAL]
+            message: { type: string }
+
+    Me:
+      type: object
+      properties:
+        userId: { type: string }
+        email: { type: string, format: email }
+        displayName: { type: string }
+        payoutEmail: { type: [string, "null"], format: email }
+        role: { type: string }
+
+    ContractTerms:
+      type: object
+      description: The contract language (version 1). See https://kept-rho.vercel.app/docs/contract-language for every field. Validated and verified server-side.
+      additionalProperties: true
+      properties:
+        version: { const: 1 }
+        title: { type: string }
+        currency: { type: string, example: USD }
+        principalCents: { type: integer, minimum: 1 }
+
+    Issue:
+      type: object
+      properties:
+        code: { type: string }
+        path: { type: string, example: "$.clauses[2].transfers[0]" }
+        message: { type: string }
+        severity: { type: string, enum: [error, warning] }
+
+    VerificationReport:
+      type: object
+      additionalProperties: true
+      properties:
+        ok: { type: boolean }
+        summary: { type: string }
+        engineVersion: { type: string }
+        irHash: { type: string }
+        properties:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              id: { type: string }
+              title: { type: string }
+              kind: { type: string }
+              severity: { type: string, enum: [error, warning] }
+              status: { type: string, enum: [proved, violated] }
+              detail: { type: string }
+              counterexample: { type: [object, "null"], additionalProperties: true }
+        stats:
+          type: object
+          properties:
+            states: { type: integer }
+            transitions: { type: integer }
+            ms: { type: number }
+            truncated: { type: boolean }
+
+    ContractSummary:
+      type: object
+      additionalProperties: true
+      properties:
+        _id: { type: string }
+        title: { type: string }
+        status: { $ref: "#/components/schemas/ContractStatus" }
+        myRole: { type: [string, "null"], enum: [funder, payee, null] }
+        currency: { type: string }
+        heldCents: { type: integer }
+        releasedCents: { type: integer }
+
+    Contract:
+      type: object
+      additionalProperties: true
+      properties:
+        _id: { type: string }
+        status: { $ref: "#/components/schemas/ContractStatus" }
+        ir: { $ref: "#/components/schemas/ContractTerms" }
+        termsHash: { type: [string, "null"] }
+
+    ContractStatus:
+      type: string
+      description: Lifecycle of a contract.
+      examples: [draft, review, needs_attention, awaiting_funding, funding, active, frozen, settled, cancelled]
+
+    JournalEntry:
+      type: object
+      required: [seq, at, actor, type, data, hash, prevHash, sig, keyId]
+      properties:
+        seq: { type: integer, minimum: 1 }
+        at: { type: integer, description: Unix milliseconds }
+        actor: { type: string, examples: [system, paypal, "user:...", "agent:...", "arbiter:..."] }
+        type: { type: string, examples: [contract.created, terms.approved, paypal.authorized, paypal.payout_sent] }
+        data: { description: Event payload (signed). }
+        hash: { type: string, description: "SHA-256 of the canonical entry, including prevHash" }
+        prevHash: { type: string, description: The previous entry's hash (64 zeros for the first). }
+        sig: { type: string, description: Ed25519 signature over the hash }
+        keyId: { type: string, description: Published at /.well-known/kept-keys.json }
+
+    MandatePolicy:
+      type: object
+      required: [version, title, purpose, currency, budgetCents, perPurchaseMaxCents, maxPurchases, expiresAfterHours, allowedMerchants, approvalAboveCents, maxPerHour]
+      properties:
+        version: { const: 1 }
+        title: { type: string, maxLength: 120 }
+        purpose: { type: string, maxLength: 600, description: Shown to the AI screener on every purchase. }
+        currency: { type: string, example: USD }
+        budgetCents: { type: integer, minimum: 100, maximum: 1000000 }
+        perPurchaseMaxCents: { type: integer, minimum: 1, description: At most budgetCents. }
+        maxPurchases: { type: integer, minimum: 1, maximum: 1000 }
+        expiresAfterHours: { type: integer, minimum: 1, maximum: 672, description: Inside PayPal's authorization window. }
+        allowedMerchants:
+          type: array
+          maxItems: 50
+          items: { type: string }
+          description: PayPal emails or `@domain.com`. Empty means any merchant.
+        approvalAboveCents: { type: [integer, "null"], minimum: 0, description: Purchases above this wait for you. Null never asks. }
+        maxPerHour: { type: integer, minimum: 1, maximum: 120 }
+
+    Mandate:
+      type: object
+      additionalProperties: true
+      properties:
+        _id: { type: string }
+        status: { type: string, examples: [draft, awaiting_funding, funding, active, frozen, closing, closed, revoked] }
+        policy: { $ref: "#/components/schemas/MandatePolicy" }
+        policyHash: { type: string }
+        feeBps: { type: integer }
+        spentCents: { type: integer }
+        reservedCents: { type: integer }
+        feesCents: { type: integer }
+        remainingCents: { type: integer }
+        purchases: { type: integer }
+        activatedAt: { type: [integer, "null"] }
+        expiresAt: { type: [integer, "null"] }
+
+    Spend:
+      type: object
+      properties:
+        _id: { type: string }
+        status: { type: string, enum: [screening, needs_approval, executing, paid, denied, failed, cancelled] }
+        merchantName: { type: string }
+        merchantEmail: { type: string }
+        amountCents: { type: integer }
+        feeCents: { type: integer }
+        amount: { type: string, example: $12.50 }
+        description: { type: string }
+        reasons: { type: array, items: { type: string } }
+        decidedBy: { type: [string, "null"] }
+        decidedAt: { type: [integer, "null"] }
+        payoutBatchId: { type: [string, "null"] }
+        createdAt: { type: integer }
+        canDecide: { type: boolean }

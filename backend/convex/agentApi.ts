@@ -38,7 +38,7 @@ async function auth(ctx: QueryCtx, tokenHash: string) {
  * agent cannot queue past them. `self` is a pending spend being re-checked:
  * its own reservation and entry are left out.
  */
-async function guard(ctx: QueryCtx, m: Doc<"mandates">, req: SpendRequest, now: number, self?: Doc<"spends">): Promise<SpendEvaluation> {
+export async function guard(ctx: QueryCtx, m: Doc<"mandates">, req: SpendRequest, now: number, self?: Doc<"spends">): Promise<SpendEvaluation> {
   const latest = await ctx.db.query("spends").withIndex("by_mandate", (q) => q.eq("mandateId", m._id)).order("desc").take(500);
   const pending = latest.filter((s) => (s.status === "screening" || s.status === "needs_approval") && s._id !== self?._id);
   return evaluateSpend(

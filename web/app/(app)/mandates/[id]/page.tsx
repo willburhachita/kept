@@ -3,6 +3,7 @@
 import { formatCents, type Currency } from "@kept/core";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { ArrowLeft, KeyRound, Plus } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
@@ -20,7 +21,11 @@ import { Stat } from "@/components/ui/type";
 import { api, type Id, type MandateView } from "@/lib/convex";
 import { errorMessage } from "@/lib/errors";
 import { dateTime } from "@/lib/format";
+import { ShopPreview } from "@/components/mandate/shop-preview";
 import { mandateStatus, spendStatus } from "@/lib/status";
+
+// AG Grid is large: load the backtest only on pages that show it.
+const PolicyBacktest = dynamic(() => import("@/components/mandate/policy-backtest").then((m) => m.PolicyBacktest), { ssr: false, loading: () => <Skeleton className="h-96 rounded-card" /> });
 
 type View = MandateView;
 
@@ -409,6 +414,14 @@ function Console() {
           )}
         </aside>
       </div>
+      <div className="mt-4">
+        <ShopPreview mandateId={m._id} live={live} />
+      </div>
+      {m.activatedAt !== null && (
+        <div className="mt-4">
+          <PolicyBacktest mandateId={m._id} policy={m.policy} activatedAt={m.activatedAt} feeBps={m.feeBps} />
+        </div>
+      )}
       <Dialog
         open={confirmRevoke}
         onClose={() => setConfirmRevoke(false)}

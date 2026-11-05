@@ -7,6 +7,7 @@
  */
 import type { HttpRouter } from "convex/server";
 import { httpAction } from "../_generated/server";
+import { agentProductSearch } from "../shopping";
 import { isAppError } from "../lib/errors";
 import { agentGetSpend, agentMandate, agentSpend, agentTokenHash, parseSpendInput } from "./agent";
 import { CORS, errorResponse, json } from "./public";
@@ -15,7 +16,7 @@ export const PROTOCOL_VERSIONS = ["2025-06-18", "2025-03-26", "2024-11-05"];
 
 export const MCP_INSTRUCTIONS =
   "You are connected to a spending mandate. You can spend only inside its limits (budget, per-purchase cap, merchant allowlist, expiry, hourly velocity). " +
-  "Call get_mandate first to see what is allowed and how much is left. Call request_spend for each purchase with the merchant's PayPal email and a clear description. " +
+  "Call get_mandate first to see what is allowed and how much is left. Use find_products to search real products: it only returns offers this mandate allows, each with the exact arguments for request_spend. Call request_spend for each purchase with the merchant's PayPal email and a clear description. " +
   "A 'denied' result is a final policy answer: do not retry it with different wording. 'needs_approval' means the owner must approve; check later with get_spend. " +
   "Reuse the same idempotency_key when retrying the same purchase after a network error.";
 
@@ -46,6 +47,21 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "find_products",
+    title: "Find products",
+    description:
+      "Search real products (via Channel3) within this mandate. The budget is applied to the search itself, and every offer is checked against the policy: you only get offers you are allowed to buy (or that need the owner's approval), each with a ready-made `purchase` object for request_spend. Offers the policy blocks are hidden and counted by reason.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "What to look for, e.g. \"A4 printer paper 500 sheets\"." },
+        limit: { type: "integer", description: "Products to search (1-30, default 12). Each can have several offers." },
+      },
+      required: ["query"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "get_spend",
     title: "Get purchase status",
     description: "Check the status of a purchase you requested (for example after needs_approval or screening).",
@@ -57,6 +73,7 @@ export interface McpDeps {
   getMandate(): Promise<unknown>;
   requestSpend(args: Record<string, unknown>): Promise<unknown>;
   getSpend(spendId: string): Promise<unknown>;
+  findProducts?(query: string, limit: unknown): Promise<unknown>;
 }
 
 export interface McpReply {
@@ -106,6 +123,10 @@ export async function handleMcpRequest(message: unknown, deps: McpDeps): Promise
       try {
         if (name === "get_mandate") return ok(id, toolResult(await deps.getMandate()));
         if (name === "get_spend") return ok(id, toolResult(await deps.getSpend(String(args.spend_id))));
+        if (name === "find_products") {
+          if (!deps.findProducts) return ok(id, toolResult("Error: product search is not available here.", true));
+          return ok(id, toolResult(await deps.findProducts(String(args.query), args.limit)));
+        }
         return ok(id, toolResult(await deps.requestSpend(args)));
       } catch (e) {
         const message = isAppError(e) ? e.data.message : e instanceof Error ? e.message : String(e);
@@ -144,6 +165,7 @@ export function registerMcp(http: HttpRouter): void {
       const reply = await handleMcpRequest(body, {
         getMandate: () => agentMandate(ctx, tokenHash),
         getSpend: (spendId) => agentGetSpend(ctx, tokenHash, spendId),
+        findProducts: (query, limit) => agentProductSearch(ctx, tokenHash, query, limit),
         requestSpend: (a) =>
           agentSpend(
             ctx,
