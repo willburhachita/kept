@@ -1,6 +1,5 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useConvexAuth } from "convex/react";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
@@ -10,8 +9,9 @@ import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Notice } from "@/components/ui/field";
 import { Segmented } from "@/components/ui/misc";
+import { Photo } from "@/components/ui/photo";
 import { errorMessage } from "@/lib/errors";
-import { PHOTOS, photo } from "@/lib/site";
+import { PHOTOS } from "@/lib/site";
 
 /** Only same-site paths: never bounce a fresh session to another domain. */
 function safeNext(raw: string | null): string {
@@ -114,7 +114,7 @@ export default function SignInPage() {
     <div className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
       <div className="hidden p-2 lg:block">
         <div className="relative h-full overflow-hidden rounded-card bg-ink text-white">
-          <img src={photo(PHOTOS.womanBench, 1600)} alt="A freelancer working on a laptop at a wooden bench" className="absolute inset-0 size-full object-cover" />
+          <Photo src={PHOTOS.womanBench} alt="A freelancer working on a laptop at a wooden bench" sizes="(min-width: 1024px) 50vw, 100vw" preload />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/35 to-ink/10" />
           <div className="absolute inset-x-10 bottom-10">
             <p className="pb-[0.2em] text-[clamp(5rem,9vw,8rem)] font-bold leading-[0.82] tracking-[-0.075em]">

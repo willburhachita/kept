@@ -1,4 +1,10 @@
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? "https://befitting-mosquito-713.convex.cloud";
+import womanDeskImg from "@/assets/photos/designer-desk.jpg";
+import womanBenchImg from "@/assets/photos/freelancer-bench.jpg";
+import fruitStandPhoneImg from "@/assets/photos/hero-market.jpg";
+import plumberBathroomImg from "@/assets/photos/plumber-bathroom.jpg";
+import womanFolderImg from "@/assets/photos/woman-folder.jpg";
+
+const convexUrl =process.env.NEXT_PUBLIC_CONVEX_URL ?? "https://befitting-mosquito-713.convex.cloud";
 const convexSiteUrl = process.env.NEXT_PUBLIC_CONVEX_SITE_URL ?? convexUrl.replace(/\.convex\.cloud$/, ".convex.site");
 const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
 
@@ -23,25 +29,17 @@ export const site = {
   npm: { core: "@kept/core", sdk: "@kept/sdk", mcp: "@kept/mcp" },
 } as const;
 
-/** Unsplash photography (free licence), hotlinked with sizing params. */
-export function photo(id: string, w = 1200, h?: number): string {
-  const size = h ? `&h=${h}&fit=crop` : "";
-  return `https://images.unsplash.com/${id}?auto=format&q=72&w=${w}${size}`;
-}
-
+/**
+ * Unsplash photography (free licence), stored in the repo so it is served from our own CDN,
+ * resized per screen with a blurred preview (see components/ui/photo.tsx). Hotlinking the
+ * originals was slow on mobile networks.
+ */
 export const PHOTOS = {
-  freelancerLaptop: "photo-1612299273045-362a39972259",
-  freelancerTable: "photo-1657449036184-4fb912035102",
-  freelancerHand: "photo-1694175271713-a6e2cc378980",
-  womanBench: "photo-1765650114546-83a73ec9d461",
-  womanDesk: "photo-1610473199899-fc0ec6e204bb",
-  womanFolder: "photo-1765650114537-423a387b4520",
-  plumberBathroom: "photo-1749532125405-70950966b0e5",
-  plumberPipe: "photo-1676210134188-4c05dd172f89",
-  plumberHeater: "photo-1676210134190-3f2c0d5cf58d",
-  fruitStandPhone: "photo-1687422809654-579d81c29d32",
-  womanSmiling: "photo-1573496799515-eebbb63814f2",
-  womanBlazer: "photo-1563132337-f159f484226c",
+  womanBench: womanBenchImg,
+  womanDesk: womanDeskImg,
+  womanFolder: womanFolderImg,
+  plumberBathroom: plumberBathroomImg,
+  fruitStandPhone: fruitStandPhoneImg,
 } as const;
 
 /** Official PayPal marks (served by PayPal for merchants that accept PayPal). */

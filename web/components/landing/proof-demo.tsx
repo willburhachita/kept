@@ -1,14 +1,14 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
 
 import { DEFAULT_FEE_BPS, EXAMPLES, EXAMPLE_PROMPTS, formatCents, renderContract, verify, type VerificationReport } from "@kept/core";
 import { Check, RotateCcw, Sparkles, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { StackedBar } from "@/components/ui/misc";
+import { Photo } from "@/components/ui/photo";
 import { LiveDot, Spinner } from "@/components/ui/spinner";
-import { PHOTOS, photo } from "@/lib/site";
+import { PHOTOS } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 type Phase = "idle" | "running" | "broken" | "repairing" | "proved";
@@ -117,7 +117,7 @@ export function ProofDemo() {
         {phase === "idle" && (
           <div className="flex flex-1 flex-col justify-end gap-8">
             <div className="relative h-56 overflow-hidden rounded-2xl sm:h-64">
-              <img src={photo(PHOTOS.womanDesk, 1000)} alt="A designer at her desk, the payee in this deal" className="absolute inset-0 size-full object-cover" />
+              <Photo src={PHOTOS.womanDesk} alt="A designer at her desk, the payee in this deal" sizes="(min-width: 1024px) 40vw, 100vw" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
               <p className="absolute bottom-4 left-4 right-4 text-sm text-white/85">The designer. She delivers on day 6. Will she get her $300?</p>
             </div>

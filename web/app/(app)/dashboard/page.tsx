@@ -1,6 +1,5 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
 import { useMutation, useQuery } from "convex/react";
 import { ArrowRight, Bot, FileSignature, Plus } from "lucide-react";
 import Link from "next/link";
@@ -12,13 +11,14 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/chip";
 import { Field, Input } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/misc";
+import { Photo } from "@/components/ui/photo";
 import { RelativeTime } from "@/components/ui/time";
 import { useToast } from "@/components/ui/toast";
 import { SectionLabel, Stat } from "@/components/ui/type";
 import { api } from "@/lib/convex";
 import { errorMessage } from "@/lib/errors";
 import { money } from "@/lib/format";
-import { PHOTOS, photo } from "@/lib/site";
+import { PHOTOS } from "@/lib/site";
 import { mandateStatus } from "@/lib/status";
 
 const NEEDS_YOU: Record<string, (role: string | null) => string | null> = {
@@ -101,7 +101,7 @@ export default function DashboardPage() {
       {firstTime ? (
         <div className="grid gap-3 lg:grid-cols-[1.2fr_1fr]">
           <div className="relative min-h-[22rem] overflow-hidden rounded-card bg-ink text-white">
-            <img src={photo(PHOTOS.womanFolder, 1400)} alt="" className="absolute inset-0 size-full object-cover opacity-85" />
+            <Photo src={PHOTOS.womanFolder} sizes="(min-width: 1024px) 55vw, 100vw" className="opacity-85" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
             <div className="absolute inset-x-6 bottom-6 sm:inset-x-8 sm:bottom-8">
               <p className="max-w-md text-[1.75rem] leading-[1.15] tracking-[-0.04em]">

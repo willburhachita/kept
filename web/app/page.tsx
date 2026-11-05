@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import { DEFAULT_FEE_BPS, EXAMPLE_PROMPTS, formatCents, officeSuppliesMandate } from "@kept/core";
 import { ArrowRight, ArrowUpRight, Check, EyeOff, FileWarning, Fingerprint, Globe, ReceiptText, ScanLine, UserCheck } from "lucide-react";
 import { PayPalBadge } from "@/components/brand/paypal";
@@ -10,8 +9,9 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { SiteNav } from "@/components/site/site-nav";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
+import { Photo } from "@/components/ui/photo";
 import { SectionGrid, SectionLabel, Statement } from "@/components/ui/type";
-import { PHOTOS, photo, site } from "@/lib/site";
+import { PHOTOS, site } from "@/lib/site";
 
 const FEE = `${(DEFAULT_FEE_BPS / 100).toFixed(1)}%`;
 
@@ -75,7 +75,7 @@ export default function Home() {
       {/* Hero: dark inset panel, giant wordmark */}
       <section className="p-1.5 sm:p-2">
         <div className="relative flex min-h-[calc(100svh-0.75rem)] flex-col justify-end overflow-hidden rounded-card bg-ink text-white">
-          <img src={photo(PHOTOS.fruitStandPhone, 2400)} alt="" className="absolute inset-0 size-full object-cover object-[60%_30%]" />
+          <Photo src={PHOTOS.fruitStandPhone} sizes="100vw" preload className="object-[60%_30%]" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/45 to-ink/25" />
           <div className="relative grid gap-10 px-6 pb-8 pt-36 sm:px-10 sm:pb-10 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
@@ -191,7 +191,7 @@ export default function Home() {
               <Reveal key={u.title} delay={i * 80}>
                 <article className="group">
                   <div className="relative aspect-[4/5] overflow-hidden rounded-card bg-ink">
-                    <img src={photo(u.img, 900)} alt={u.alt} className="absolute inset-0 size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
+                    <Photo src={u.img} alt={u.alt} sizes="(min-width: 768px) 33vw, 100vw" className="transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
                     <div className="absolute left-4 top-4 flex gap-1.5">
                       {u.tags.map((t) => (
                         <Chip key={t} tone="glass">
