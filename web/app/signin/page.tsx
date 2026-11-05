@@ -117,7 +117,7 @@ export default function SignInPage() {
           <img src={photo(PHOTOS.womanBench, 1600)} alt="A freelancer working on a laptop at a wooden bench" className="absolute inset-0 size-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/35 to-ink/10" />
           <div className="absolute inset-x-10 bottom-10">
-            <p className="text-[clamp(5rem,9vw,8rem)] font-bold leading-[0.82] tracking-[-0.075em]">
+            <p className="pb-[0.2em] text-[clamp(5rem,9vw,8rem)] font-bold leading-[0.82] tracking-[-0.075em]">
               Kept<span className="text-pp">.</span>
             </p>
             <p className="mt-8 max-w-md text-[1.625rem] font-semibold leading-[1.15] tracking-[-0.045em]">

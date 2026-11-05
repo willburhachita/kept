@@ -79,10 +79,10 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/45 to-ink/25" />
           <div className="relative grid gap-10 px-6 pb-8 pt-36 sm:px-10 sm:pb-10 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
-              <p className="animate-rise text-[clamp(5.5rem,19vw,15.5rem)] font-bold leading-[0.82] tracking-[-0.075em]">
+              <p className="animate-rise pb-[0.2em] text-[clamp(5.5rem,19vw,15.5rem)] font-bold leading-[0.82] tracking-[-0.075em]">
                 Kept<span className="text-pp">.</span>
               </p>
-              <div className="mt-8 flex flex-wrap gap-x-8 gap-y-2 text-sm font-semibold tracking-[-0.02em]">
+              <div className="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-sm font-semibold tracking-[-0.02em]">
                 <span>Proved before paid</span>
                 <span>Held by PayPal</span>
                 <span>{FEE} only when released</span>
