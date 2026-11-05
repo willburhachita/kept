@@ -197,7 +197,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <UserMenu />
           </div>
         </div>
-        <nav aria-label="App sections" className="mx-auto mt-2 max-w-6xl overflow-x-auto md:hidden">
+        <nav aria-label="App sections" className="glass mx-auto mt-2 max-w-6xl overflow-x-auto rounded-2xl p-1 shadow-float md:hidden">
           <ul className="flex gap-1">
             {[...nav, { href: "/new", label: "New" }].map((l) => (
               <li key={l.href}>

@@ -82,7 +82,7 @@ export function Guide() {
   const { title, tips } = tipsFor(pathname);
 
   return (
-    <div className="pointer-events-none fixed right-3 top-24 z-[55] flex flex-col items-end gap-3 sm:right-5">
+    <div className="pointer-events-none fixed right-3 top-[8.5rem] z-[55] md:top-24 flex flex-col items-end gap-3 sm:right-5">
       {open && (
         <div role="dialog" aria-label="Guide" className="pointer-events-auto w-[min(92vw,24rem)] animate-rise overflow-hidden rounded-card bg-surface text-ink shadow-lift ring-1 ring-black/5">
           <div className="flex items-start justify-between gap-4 bg-ink p-5 text-white">

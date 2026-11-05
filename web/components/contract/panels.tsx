@@ -179,7 +179,7 @@ export function ApprovePanel({ c }: { c: View }) {
         </div>
         <p className="max-w-xs text-xs leading-relaxed text-muted">Read these 8 characters to each other. If they match, you are both approving the very same proved terms.</p>
       </div>
-      {c.termsHash && <Hash value={c.termsHash} mode="full" className="mt-2 text-[11px]" />}
+      {c.termsHash ? <Hash value={c.termsHash} mode="full" className="mt-2 text-[11px]" /> : <p className="mt-2 text-xs text-muted">The fingerprint appears as soon as the other side joins: it covers both of you, so it can only exist once you both do.</p>}
       {canApprove && (
         <div className="mt-5 space-y-4">
           {needsPayout && (

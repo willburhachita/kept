@@ -101,7 +101,7 @@ export default function DashboardPage() {
       {firstTime ? (
         <div className="grid gap-3 lg:grid-cols-[1.2fr_1fr]">
           <div className="relative min-h-[22rem] overflow-hidden rounded-card bg-ink text-white">
-            <img src={photo(PHOTOS.plumberPipe, 1400)} alt="" className="absolute inset-0 size-full object-cover opacity-60" />
+            <img src={photo(PHOTOS.womanFolder, 1400)} alt="" className="absolute inset-0 size-full object-cover opacity-85" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
             <div className="absolute inset-x-6 bottom-6 sm:inset-x-8 sm:bottom-8">
               <p className="max-w-md text-[1.75rem] leading-[1.15] tracking-[-0.04em]">
