@@ -433,9 +433,10 @@ export function verify(ir: ContractIR, opts: VerifyOptions = {}): VerificationRe
   };
 
   const properties: PropertyResult[] = [];
-  const add = (p: Omit<PropertyResult, "status" | "counterexample">) => {
+  // `broken` is the detail shown when a counterexample exists, so a violated property never reads as holding.
+  const add = ({ broken, ...p }: Omit<PropertyResult, "status" | "counterexample"> & { broken: string }) => {
     const ce = counter(p.id);
-    properties.push({ ...p, status: ce ? "violated" : "proved", counterexample: ce });
+    properties.push({ ...p, detail: ce ? broken : p.detail, status: ce ? "violated" : "proved", counterexample: ce });
   };
   const explored = `${nodes.size.toLocaleString("en-US")} reachable states`;
   add({
@@ -444,6 +445,7 @@ export function verify(ir: ContractIR, opts: VerifyOptions = {}): VerificationRe
     kind: "safety",
     severity: "error",
     detail: `Across ${explored}, money in always equals money out and no rule ever moves more than is held.`,
+    broken: "Some path moves more money than is held, or loses track of a cent. See the walkthrough below.",
   });
   add({
     id: "no_stranded_funds",
@@ -451,6 +453,7 @@ export function verify(ir: ContractIR, opts: VerifyOptions = {}): VerificationRe
     kind: "liveness",
     severity: "error",
     detail: `All ${terminals.toLocaleString("en-US")} possible endings release or refund every cent.`,
+    broken: "At least one ending leaves money held with no rule left to release or refund it. See the walkthrough below.",
   });
   for (const g of ir.guarantees) {
     add({
@@ -459,6 +462,7 @@ export function verify(ir: ContractIR, opts: VerifyOptions = {}): VerificationRe
       kind: "promise",
       severity: "error",
       detail: `Holds on every outcome it covers (checked across ${explored}).`,
+      broken: "Breaks on at least one outcome it covers. See the walkthrough below.",
     });
   }
   add({
@@ -467,6 +471,7 @@ export function verify(ir: ContractIR, opts: VerifyOptions = {}): VerificationRe
     kind: "fairness",
     severity: "warning",
     detail: "The contract never settles while the payee is waiting on a review, unless they are already paid in full.",
+    broken: "The contract can settle while the payee is still waiting on a review. See the walkthrough below.",
   });
 
   const windowOk = latest <= budget;
