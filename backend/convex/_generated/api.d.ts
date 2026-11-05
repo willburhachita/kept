@@ -46,6 +46,7 @@ import type * as routes_mcp from "../routes/mcp.js";
 import type * as routes_paypal from "../routes/paypal.js";
 import type * as routes_public from "../routes/public.js";
 import type * as routes_rest from "../routes/rest.js";
+import type * as testkit from "../testkit.js";
 import type * as transparency from "../transparency.js";
 import type * as users from "../users.js";
 import type * as verification from "../verification.js";
@@ -96,6 +97,7 @@ declare const fullApi: ApiFromModules<{
   "routes/paypal": typeof routes_paypal;
   "routes/public": typeof routes_public;
   "routes/rest": typeof routes_rest;
+  testkit: typeof testkit;
   transparency: typeof transparency;
   users: typeof users;
   verification: typeof verification;
