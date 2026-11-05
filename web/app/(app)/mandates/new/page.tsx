@@ -1,6 +1,6 @@
 "use client";
 
-import { DEFAULT_FEE_BPS, EXAMPLE_PROMPTS, authorizationAmount, formatCents, maxFee, officeSuppliesMandate, validateMandate, verifyMandate, type MandatePolicy } from "@kept/core";
+import { DEFAULT_FEE_BPS, EXAMPLE_PROMPTS, MANDATE_LIMITS, PAYPAL_RULES, authorizationAmount, formatCents, maxFee, officeSuppliesMandate, validateMandate, verifyMandate, type MandatePolicy } from "@kept/core";
 import { useAction, useMutation } from "convex/react";
 import { Check, Sparkles, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -60,6 +60,39 @@ function toPolicy(f: Form): unknown {
     maxPerHour: Number(f.maxPerHour || "0"),
     expiresAfterHours: Number(f.expiresHours || "0"),
   };
+}
+
+/** The core validator speaks to API developers (field names, cents); say the same thing in the form's words. */
+function friendlyIssue(issue: { path: string; code: string; message: string }, f: Form): string {
+  const key = issue.path.replace(/^\$\./, "").replace(/\[\d+\]$/, "");
+  const usd = (c: number) => formatCents(c, (f.currency || "USD") as MandatePolicy["currency"]);
+  const budget = cents(f.budget);
+  const perPurchase = cents(f.perPurchase);
+  const range = issue.code === "range";
+  switch (key) {
+    case "title":
+      return issue.code === "too_long" ? `Keep the name under ${MANDATE_LIMITS.maxTitle} characters.` : "Give the budget a name.";
+    case "purpose":
+      return issue.code === "too_long" ? `Keep “What it may buy” under ${MANDATE_LIMITS.maxPurpose} characters.` : "Fill in “What it may buy”.";
+    case "budgetCents":
+      return range ? `“Total budget” must be between ${usd(MANDATE_LIMITS.minBudgetCents)} and ${usd(MANDATE_LIMITS.maxBudgetCents)}.` : "Enter “Total budget” in dollars.";
+    case "perPurchaseMaxCents":
+      return range ? `“Most per purchase” must be more than $0 and no more than the budget (${usd(budget)}).` : "Enter “Most per purchase” in dollars.";
+    case "approvalAboveCents":
+      return range ? `“Ask me above” can't be more than the most per purchase (${usd(perPurchase)}). Leave it empty to never ask.` : "Enter the amount above which you approve purchases, or leave it empty.";
+    case "maxPurchases":
+      return `“Most purchases in total” must be a whole number from 1 to ${MANDATE_LIMITS.maxPurchases}.`;
+    case "maxPerHour":
+      return `“Most purchases per hour” must be a whole number from 1 to ${MANDATE_LIMITS.maxPerHour}.`;
+    case "expiresAfterHours":
+      return `“Expires after” must be a whole number of hours, at most ${PAYPAL_RULES.authorizationBudgetHours} (28 days), so the PayPal hold never lapses.`;
+    case "allowedMerchants":
+      return issue.code === "format" ? `${issue.message.split(" is not")[0]} isn't a merchant email or @domain (like @staples.com).` : issue.code === "too_many" ? `List at most ${MANDATE_LIMITS.maxMerchants} merchants.` : "List the merchants it may pay.";
+    case "currency":
+      return "Pick a currency.";
+    default:
+      return issue.message;
+  }
 }
 
 export default function NewMandatePage() {
@@ -205,9 +238,7 @@ export default function NewMandatePage() {
             ) : (
               <ul className="mt-4 space-y-2 text-sm text-white/75">
                 {checked.issues.map((i) => (
-                  <li key={`${i.path}${i.message}`}>
-                    {i.path.replace(/^\$\.?/, "") || "policy"}: {i.message}
-                  </li>
+                  <li key={`${i.path}${i.message}`}>{friendlyIssue(i, deferred)}</li>
                 ))}
               </ul>
             )}

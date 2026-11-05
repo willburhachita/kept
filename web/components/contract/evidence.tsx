@@ -39,6 +39,13 @@ const TIMER_LABEL: Record<string, string> = {
   arbitration: "Arbiter decides within",
 };
 
+/** Who made a final decision, from its journal actor (only the payer decides as a user). */
+function decidedBy(by?: string): string {
+  if (by?.startsWith("arbiter:")) return "The arbiter";
+  if (by?.startsWith("user:")) return "The payer";
+  return "Kept's rules";
+}
+
 /** Payee: deliver one deliverable (file upload, text or link). */
 function SubmitSlot({ c, slotId }: { c: View; slotId: string }) {
   const slot = c.ir?.evidence.find((e) => e.id === slotId);
@@ -245,7 +252,7 @@ function EvidenceTile({ ev }: { ev: Item }) {
           {ev.dispute && <p className="text-muted">Payee disputed: &ldquo;{(ev.dispute as { reason?: string }).reason}&rdquo;</p>}
           {ev.decision && (
             <p className="flex items-center gap-2 text-ink">
-              <Gavel className="size-4" /> Arbiter: {(ev.decision as { outcome?: string }).outcome} · &ldquo;{(ev.decision as { reason?: string }).reason}&rdquo;
+              <Gavel className="size-4" /> {decidedBy((ev.decision as { by?: string }).by)} {(ev.decision as { outcome?: string }).outcome} it · &ldquo;{(ev.decision as { reason?: string }).reason}&rdquo;
             </p>
           )}
         </div>

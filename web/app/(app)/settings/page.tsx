@@ -79,7 +79,7 @@ function ApiKeys() {
   const create = useAction(api.apiKeys.create);
   const revoke = useMutation(api.apiKeys.revoke);
   const toast = useToast();
-  const [label, setLabel] = useState("server");
+  const [label, setLabel] = useState("");
   const [pending, setPending] = useState(false);
   const [secret, setSecret] = useState<string | null>(null);
   const [revoking, setRevoking] = useState<Id<"apiKeys"> | null>(null);
@@ -98,6 +98,7 @@ function ApiKeys() {
           try {
             const r = await create({ label });
             setSecret(r.key);
+            setLabel("");
           } catch (err) {
             toast({ title: "Couldn't create a key", body: errorMessage(err), tone: "bad" });
           } finally {
@@ -105,7 +106,7 @@ function ApiKeys() {
           }
         }}
       >
-        <Input value={label} onChange={(e) => setLabel(e.target.value)} aria-label="Key label" maxLength={80} />
+        <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Label, e.g. production server" aria-label="Key label" maxLength={80} />
         <Button type="submit" loading={pending} icon={<Plus className="size-4" />}>
           Create key
         </Button>
@@ -146,6 +147,7 @@ function ApiKeys() {
               onClick={async () => {
                 try {
                   if (revoking) await revoke({ keyId: revoking });
+                  setSecret(null); // never leave a just-revoked key on screen as if it were usable
                   toast({ title: "Key revoked", tone: "ok" });
                 } catch (e) {
                   toast({ title: "Couldn't revoke", body: errorMessage(e), tone: "bad" });
@@ -236,7 +238,8 @@ function Webhooks() {
               <div className="min-w-0">
                 <p className="truncate font-mono text-xs text-ink">{ep.url}</p>
                 <p className="mt-1 text-xs text-muted">
-                  {ep.events.join(", ")} · {ep.failures} recent failures
+                  {ep.events.map((e) => EVENT_GROUPS.find((g) => g.value === e)?.label ?? e).join(", ")} ·{" "}
+                  {ep.failures ? `${ep.failures} deliver${ep.failures === 1 ? "y" : "ies"} failed after every retry` : "no failed deliveries (failing ones are retried for a while first)"}
                 </p>
               </div>
               <div className="flex items-center gap-1">

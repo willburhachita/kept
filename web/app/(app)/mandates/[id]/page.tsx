@@ -346,7 +346,11 @@ function Console() {
           <FundCard m={m} />
           <Card>
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <Stat label="Left to spend" value={m.money.remaining} sub={`of ${m.money.budget}`} />
+              <Stat
+                label={m.status === "closing" ? "Being released back to you" : m.status === "closed" || m.status === "revoked" ? "Not spent, released back to you" : "Left to spend"}
+                value={m.money.remaining}
+                sub={`of ${m.money.budget}`}
+              />
               {live && m.expiresAt && (
                 <p className="text-sm text-muted">
                   Closes in <Countdown to={m.expiresAt} className="text-ink" parts={2} />
