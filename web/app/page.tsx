@@ -282,9 +282,6 @@ export default function Home() {
                     <p className="text-lg font-semibold tracking-[-0.035em]">{m.title}</p>
                     <p className="mt-1 text-sm text-muted">&ldquo;{EXAMPLE_PROMPTS.mandate.slice(0, 84)}&hellip;&rdquo;</p>
                   </div>
-                  <Chip tone="ok" live>
-                    Live
-                  </Chip>
                 </div>
                 <div className="mt-6 flex items-baseline justify-between">
                   <p className="tabular text-4xl font-semibold tracking-[-0.06em]">{formatCents(13_500)}</p>

@@ -1,11 +1,14 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import { DEFAULT_FEE_BPS, EXAMPLES, EXAMPLE_PROMPTS, formatCents, renderContract, verify, type VerificationReport } from "@kept/core";
 import { Check, RotateCcw, Sparkles, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { StackedBar } from "@/components/ui/misc";
 import { LiveDot, Spinner } from "@/components/ui/spinner";
+import { PHOTOS, photo } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 type Phase = "idle" | "running" | "broken" | "repairing" | "proved";
@@ -112,7 +115,12 @@ export function ProofDemo() {
         </div>
 
         {phase === "idle" && (
-          <div className="flex flex-1 flex-col justify-center">
+          <div className="flex flex-1 flex-col justify-end gap-8">
+            <div className="relative h-56 overflow-hidden rounded-2xl sm:h-64">
+              <img src={photo(PHOTOS.womanDesk, 1000)} alt="A designer at her desk, the payee in this deal" className="absolute inset-0 size-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+              <p className="absolute bottom-4 left-4 right-4 text-sm text-white/85">The designer. She delivers on day 6. Will she get her $300?</p>
+            </div>
             <p className="max-w-sm text-[1.625rem] leading-[1.2] tracking-[-0.04em]">
               Before anyone pays, Kept tries every order of events. <span className="text-white/40">Deliveries, reviews, deadlines, even two at the same instant.</span>
             </p>
@@ -142,7 +150,7 @@ export function ProofDemo() {
             <ul className="mt-4 grid gap-1.5 sm:grid-cols-2">
               {report.properties.map((p) => (
                 <li key={p.id} className="flex items-center gap-2 text-sm">
-                  <span className={cn("flex size-4 shrink-0 items-center justify-center rounded-full", p.status === "proved" ? "bg-[#1f9d63]" : "bg-bad")}>
+                  <span className={cn("flex size-4 shrink-0 items-center justify-center rounded-full", p.status === "proved" ? "bg-pp" : "bg-bad")}>
                     {p.status === "proved" ? <Check className="size-2.5" /> : <X className="size-2.5" />}
                   </span>
                   <span className={cn(p.status === "proved" ? "text-white/70" : "text-white")}>{p.title}</span>
@@ -182,7 +190,7 @@ export function ProofDemo() {
                 </ol>
                 {shown > steps.length && (
                   <div className="mt-5 animate-rise">
-                    <div className="inline-block -rotate-1 rounded-xl border-2 border-[#ff6b4a] px-4 py-2 text-[#ff8a70]">
+                    <div className="inline-block -rotate-1 rounded-xl border-2 border-white/70 px-4 py-2 text-white/75">
                       <p className="text-xs uppercase tracking-[0.12em]">Broken promise</p>
                       <p className="mt-0.5 max-w-md text-sm leading-snug text-white/85">The designer delivered on time and the deadline rule refunded her pay anyway: $100 of $300.</p>
                     </div>

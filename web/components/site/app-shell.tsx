@@ -18,6 +18,7 @@ const NAV = [
   { href: "/contracts", label: "Promises" },
   { href: "/mandates", label: "Agents" },
   { href: "/settings", label: "Developers" },
+  { href: "/docs", label: "Docs" },
 ];
 
 /** Where a notification about `stream` should take you. */

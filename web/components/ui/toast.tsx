@@ -32,7 +32,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-4 z-[60] flex flex-col items-center gap-2 px-4">
         {items.map((t) => (
           <div key={t.id} className="pointer-events-auto flex w-full max-w-md animate-rise items-start gap-3 rounded-2xl bg-ink px-4 py-3 text-white shadow-lift">
-            <span className={cn("mt-0.5", t.tone === "ok" && "text-[#5be3a0]", t.tone === "bad" && "text-[#ff8a70]", t.tone === "neutral" && "text-pp-sky")}>
+            <span className={cn("mt-0.5", t.tone === "ok" && "text-pp-sky", t.tone === "bad" && "text-white/75", t.tone === "neutral" && "text-pp-sky")}>
               {t.tone === "ok" ? <CheckCircle2 className="size-4" /> : t.tone === "bad" ? <CircleAlert className="size-4" /> : <Info className="size-4" />}
             </span>
             <div className="min-w-0 flex-1">

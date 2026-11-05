@@ -139,7 +139,7 @@ export function VerifyReceiptsTool() {
         <div className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
           <Card tone={out.chain.ok ? "dark" : "light"}>
             <p className={cn("flex items-center gap-2 text-2xl font-semibold tracking-[-0.045em]", !out.chain.ok && "text-bad")}>
-              {out.chain.ok ? <ShieldCheck className="size-6 text-[#5be3a0]" /> : <ShieldAlert className="size-6" />}
+              {out.chain.ok ? <ShieldCheck className="size-6 text-pp-sky" /> : <ShieldAlert className="size-6" />}
               {out.chain.ok ? `${out.chain.checked} receipts verified` : `Broken at entry ${out.chain.failedAt}`}
             </p>
             <p className={cn("mt-2 text-sm leading-relaxed", out.chain.ok ? "text-white/60" : "text-muted")}>

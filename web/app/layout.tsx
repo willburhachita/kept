@@ -3,6 +3,7 @@ import "@fontsource-variable/jetbrains-mono";
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { Guide } from "@/components/site/guide";
 import { PhishingGuard } from "@/components/site/phishing-guard";
 import { site } from "@/lib/site";
 import { Providers } from "./providers";
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Providers>
           <PhishingGuard />
           {children}
+          <Guide />
         </Providers>
       </body>
     </html>

@@ -24,12 +24,13 @@
   --color-pp-tint: rgb(5 55 130 / 0.08);
   --color-pp-gold: #ffc439;
 
-  --color-ok: #0f7b4a;
-  --color-ok-tint: #e6f4ec;
-  --color-warn: #9a5800;
-  --color-warn-tint: #fcf0dc;
-  --color-bad: #c22f0f;
-  --color-bad-tint: #fbe8e3;
+  /* States stay inside the palette: blue for done, ink on grey for waiting and problems. */
+  --color-ok: #0066f5;
+  --color-ok-tint: rgb(0 102 245 / 0.09);
+  --color-warn: #3a3a3a;
+  --color-warn-tint: #ececec;
+  --color-bad: #0a0a0a;
+  --color-bad-tint: #e4e4e4;
 
   --radius-card: 1.5625rem;
   --radius-field: 0.875rem;

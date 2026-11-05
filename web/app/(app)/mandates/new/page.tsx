@@ -190,7 +190,7 @@ export default function NewMandatePage() {
                 <ul className="mt-6 space-y-2.5">
                   {checked.report.properties.map((x) => (
                     <li key={x.id} className="flex gap-2.5 text-sm">
-                      <span className={cn("mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full", x.status === "proved" ? "bg-[#1f9d63]" : "bg-bad")}>
+                      <span className={cn("mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full", x.status === "proved" ? "bg-pp" : "bg-bad")}>
                         {x.status === "proved" ? <Check className="size-2.5" /> : <X className="size-2.5" />}
                       </span>
                       <span>
@@ -203,7 +203,7 @@ export default function NewMandatePage() {
                 <p className="tabular mt-5 text-xs text-white/40">Checked against {checked.report.stats.simulatedRequests.toLocaleString()} simulated hostile purchase attempts.</p>
               </>
             ) : (
-              <ul className="mt-4 space-y-2 text-sm text-[#ff8a70]">
+              <ul className="mt-4 space-y-2 text-sm text-white/75">
                 {checked.issues.map((i) => (
                   <li key={`${i.path}${i.message}`}>
                     {i.path.replace(/^\$\.?/, "") || "policy"}: {i.message}
