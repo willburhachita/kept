@@ -412,7 +412,7 @@ function reasonOf(reason: string | undefined, required: boolean): string {
 async function acceptFlow(ctx: MutationCtx, userId: Id<"users">, evidenceId: Id<"evidence">) {
   const { ev } = await participantEvidence(ctx, userId, evidenceId, "funder");
   if (ev.status === "accepted" || ev.status === "rejected") fail("INVALID_STATE", `Evidence is already ${ev.status}.`);
-  await decide(ctx, ev, "accepted", actorUser(userId), "Accepted by the funder.");
+  await decide(ctx, ev, "accepted", actorUser(userId), "Accepted by the payer.");
   return { status: "accepted" as const };
 }
 

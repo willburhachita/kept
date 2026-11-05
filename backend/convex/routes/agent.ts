@@ -64,13 +64,14 @@ const handler = httpAction(async (ctx, req) => {
   const path = new URL(req.url).pathname.replace(/\/+$/, "");
   try {
     const tokenHash = agentTokenHash(req);
-    if (req.method === "GET" && path === "/agent/v1/mandate") return json(200, await agentMandate(ctx, tokenHash));
-    if (req.method === "POST" && path === "/agent/v1/spends") return json(200, await agentSpend(ctx, tokenHash, parseSpendInput(await readJson(req, 16 * 1024))));
+    if (req.method === "GET" && path === "/agent/v1/mandate") return json(200, await agentMandate(ctx, tokenHash), CORS);
+    if (req.method === "POST" && path === "/agent/v1/spends") return json(200, await agentSpend(ctx, tokenHash, parseSpendInput(await readJson(req, 16 * 1024))), CORS);
     const m = /^\/agent\/v1\/spends\/([^/]+)$/.exec(path);
-    if (req.method === "GET" && m) return json(200, await agentGetSpend(ctx, tokenHash, decodeURIComponent(m[1])));
-    return errorJson(404, "NOT_FOUND", "No such endpoint.");
+    if (req.method === "GET" && m) return json(200, await agentGetSpend(ctx, tokenHash, decodeURIComponent(m[1])), CORS);
+    return errorJson(404, "NOT_FOUND", "No such endpoint.", CORS);
   } catch (e) {
-    return errorResponse(e);
+    // Agents may run in a browser: every answer carries CORS, not just the preflight.
+    return errorResponse(e, CORS);
   }
 });
 
