@@ -6,7 +6,6 @@ import { Accordion } from "@/components/landing/accordion";
 import { FeeCalculator } from "@/components/landing/fee-calculator";
 import { ProofDemo } from "@/components/landing/proof-demo";
 import { Reveal } from "@/components/landing/reveal";
-import { StateGraph } from "@/components/landing/state-graph";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteNav } from "@/components/site/site-nav";
 import { Button } from "@/components/ui/button";
@@ -76,8 +75,8 @@ export default function Home() {
       {/* Hero: dark inset panel, giant wordmark */}
       <section className="p-1.5 sm:p-2">
         <div className="relative flex min-h-[calc(100svh-0.75rem)] flex-col justify-end overflow-hidden rounded-card bg-ink text-white">
-          <StateGraph className="absolute inset-0 size-full" />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-ink/10" />
+          <img src={photo(PHOTOS.fruitStandPhone, 2400)} alt="" className="absolute inset-0 size-full object-cover object-[60%_30%]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/45 to-ink/25" />
           <div className="relative grid gap-10 px-6 pb-8 pt-36 sm:px-10 sm:pb-10 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
               <p className="animate-rise text-[clamp(5.5rem,19vw,15.5rem)] font-bold leading-[0.82] tracking-[-0.075em]">

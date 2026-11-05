@@ -4,7 +4,7 @@ The single source of truth for anyone building screens in `web/`. Read it before
 
 ## The look in one sentence
 
-**Bold, clean, confident.** Inter at weight 600 with very tight tracking, white 25px cards on a soft grey canvas, black sections, generous space, and PayPal blue as the only accent color. No emojis, no decorative gradients, no stock 3D. The one illustration is our own: the generated `StateGraph` (every possible outcome, one proved path), used on dark panels.
+**Bold, clean, confident.** Inter at weight 600 with very tight tracking, white 25px cards on a soft grey canvas, black sections, generous space, and PayPal blue as the only accent color. No emojis, no decorative gradients, no stock 3D. The hero and sign-in panels use real photography of people (`photo(PHOTOS.x)` from `lib/site.ts`) under a dark gradient; the generated `StateGraph` (every outcome, one proved path) is a secondary illustration for dark panels.
 
 Signature moves:
 

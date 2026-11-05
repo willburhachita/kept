@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useConvexAuth } from "convex/react";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
@@ -10,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Input, Notice } from "@/components/ui/field";
 import { Segmented } from "@/components/ui/misc";
 import { errorMessage } from "@/lib/errors";
-import { StateGraph } from "@/components/landing/state-graph";
+import { PHOTOS, photo } from "@/lib/site";
 
 /** Only same-site paths: never bounce a fresh session to another domain. */
 function safeNext(raw: string | null): string {
@@ -113,8 +114,8 @@ export default function SignInPage() {
     <div className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
       <div className="hidden p-2 lg:block">
         <div className="relative h-full overflow-hidden rounded-card bg-ink text-white">
-          <StateGraph className="absolute inset-0 size-full" seed={11} />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-ink/20" />
+          <img src={photo(PHOTOS.womanBench, 1600)} alt="A freelancer working on a laptop at a wooden bench" className="absolute inset-0 size-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/35 to-ink/10" />
           <div className="absolute inset-x-10 bottom-10">
             <p className="text-[clamp(5rem,9vw,8rem)] font-bold leading-[0.82] tracking-[-0.075em]">
               Kept<span className="text-pp">.</span>
