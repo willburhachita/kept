@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Logo } from "@/components/brand/logo";
+import { GuideButton } from "@/components/site/guide";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { RelativeTime } from "@/components/ui/time";
@@ -191,6 +192,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Button href="/new" size="sm" icon={<Plus className="size-4" />} className="hidden sm:inline-flex">
               New promise
             </Button>
+            <GuideButton className="h-9 rounded-full px-3 text-sm text-muted hover:bg-black/5 hover:text-ink" />
             <NotificationsBell />
             <UserMenu />
           </div>

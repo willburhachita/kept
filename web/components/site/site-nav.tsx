@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/brand/logo";
+import { GuideButton } from "@/components/site/guide";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -66,6 +67,9 @@ export function SiteNav({ overDark = false }: { overDark?: boolean }) {
               </li>
             );
           })}
+          <li>
+            <GuideButton className={cn("rounded-full px-3 py-2 text-[15px] font-semibold tracking-[-0.02em] transition-colors", dark ? "text-white/75 hover:text-white" : "text-muted hover:text-ink")} />
+          </li>
         </ul>
         <div className="flex items-center gap-2">
           {isAuthenticated ? (
@@ -103,6 +107,9 @@ export function SiteNav({ overDark = false }: { overDark?: boolean }) {
                 </Link>
               </li>
             ))}
+            <li>
+              <GuideButton className="w-full rounded-xl px-3 py-3 text-base tracking-[-0.03em] hover:bg-black/5" />
+            </li>
             {!isAuthenticated && (
               <li>
                 <Link href="/signin" className="block rounded-xl px-3 py-3 text-base tracking-[-0.03em] hover:bg-black/5">

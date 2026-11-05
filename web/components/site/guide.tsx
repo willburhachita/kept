@@ -7,6 +7,21 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 const SEEN = "kept:guide:seen";
+const EVENT = "kept:guide";
+
+/** Open or close the guide from anywhere (the nav buttons use this). */
+export function toggleGuide() {
+  window.dispatchEvent(new Event(EVENT));
+}
+
+/** Nav item that opens the guide. */
+export function GuideButton({ className }: { className?: string }) {
+  return (
+    <button type="button" onClick={toggleGuide} className={cn("inline-flex items-center gap-1.5", className)}>
+      <Compass className="size-4" /> Guide
+    </button>
+  );
+}
 
 const STEPS = [
   { t: "Describe the deal", d: "Write it like a text message: who pays, how much, for what, and by when." },
@@ -46,6 +61,14 @@ export function Guide() {
     return () => clearTimeout(id);
   }, []);
   useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    const h = () => {
+      setOpen((o) => !o);
+      markSeen();
+    };
+    window.addEventListener(EVENT, h);
+    return () => window.removeEventListener(EVENT, h);
+  });
 
   function markSeen() {
     setNudge(false);
@@ -59,9 +82,9 @@ export function Guide() {
   const { title, tips } = tipsFor(pathname);
 
   return (
-    <div className="fixed bottom-4 right-4 z-[55] flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
+    <div className="pointer-events-none fixed right-3 top-24 z-[55] flex flex-col items-end gap-3 sm:right-5">
       {open && (
-        <div role="dialog" aria-label="Guide" className="w-[min(92vw,24rem)] animate-rise overflow-hidden rounded-card bg-surface text-ink shadow-lift ring-1 ring-black/5">
+        <div role="dialog" aria-label="Guide" className="pointer-events-auto w-[min(92vw,24rem)] animate-rise overflow-hidden rounded-card bg-surface text-ink shadow-lift ring-1 ring-black/5">
           <div className="flex items-start justify-between gap-4 bg-ink p-5 text-white">
             <div>
               <p className="text-xs text-white/50">Guide</p>
@@ -71,7 +94,7 @@ export function Guide() {
               <X className="size-4" />
             </button>
           </div>
-          <div className="max-h-[60vh] overflow-y-auto p-5">
+          <div className="max-h-[calc(100dvh-14rem)] overflow-y-auto p-5">
             <ol className="space-y-3.5">
               {STEPS.map((s, i) => (
                 <li key={s.t} className="flex gap-3">
@@ -112,25 +135,13 @@ export function Guide() {
         </div>
       )}
       {nudge && !open && (
-        <div className="flex max-w-[16rem] animate-rise items-start gap-2 rounded-2xl bg-surface p-3 pl-4 text-sm shadow-lift ring-1 ring-black/5">
-          <p className="leading-snug">New here? Here&apos;s how Kept works in a minute.</p>
+        <div className="pointer-events-auto flex max-w-[17rem] animate-rise items-start gap-2 rounded-2xl bg-surface p-3 pl-4 text-sm shadow-lift ring-1 ring-black/5">
+          <button type="button" onClick={() => { setOpen(true); markSeen(); }} className="text-left leading-snug">New here? Open the <strong className="font-semibold">Guide</strong> to see how Kept works in a minute.</button>
           <button type="button" onClick={markSeen} aria-label="Dismiss" className="shrink-0 text-faint hover:text-ink">
             <X className="size-4" />
           </button>
         </div>
       )}
-      <button
-        type="button"
-        onClick={() => {
-          setOpen((o) => !o);
-          markSeen();
-        }}
-        aria-expanded={open}
-        className={cn("inline-flex h-12 items-center gap-2 rounded-full px-5 text-sm font-semibold shadow-lift transition-colors", open ? "bg-surface text-ink ring-1 ring-black/10" : "bg-ink text-white hover:bg-ink-2")}
-      >
-        {open ? <X className="size-4" /> : <Compass className="size-4" />}
-        {open ? "Close" : "Guide"}
-      </button>
     </div>
   );
 }
