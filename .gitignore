@@ -9,3 +9,7 @@ coverage/
 next-env.d.ts
 *.tsbuildinfo
 .vercel
+
+# Demo video: renders and anything derived from the private reference clips
+video/out/
+video/shots/
