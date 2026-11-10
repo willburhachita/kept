@@ -46,27 +46,26 @@ const boing = () => gen(0.35, (t) => Math.sin(2 * Math.PI * (300 * t + 220 * Mat
 const poof = () => lowpass(gen(0.4, (t, p) => rnd() * Math.exp(-t * 9) * 0.8), 2200);
 const chime = (fs, gap = 0.12) => fs.map((f, i) => [i * gap, bell(f)]);
 
-// ---- bed: a low pad, one chord per scene, plus a soft pulse that thickens with the energy of each scene
+// ---- bed: a low pad, one chord per scene, plus a soft kick that thickens with the energy of each scene.
+// Purely tonal on purpose: no noise layer, which read as rain or a shower under the voice.
 const CHORDS = { cold: [55, 82.4, 110], title: [65.4, 98, 130.8, 196], who: [73.4, 110, 146.8, 220], say: [73.4, 110, 146.8, 220], graph: [61.7, 92.5, 123.5], counter: [58.3, 87.3, 116.5], proved: [65.4, 98, 130.8, 164.8], hold: [55, 82.4, 110, 164.8], money: [55, 82.4, 110, 164.8], keep: [73.4, 110, 146.8, 185], plumber: [73.4, 110, 146.8, 185], receipts: [61.7, 92.5, 123.5, 185], cheat: [51.9, 77.8, 103.8], link: [51.9, 77.8, 103.8], agents: [61.7, 92.5, 123.5, 185], dev: [61.7, 92.5, 123.5, 185], close: [65.4, 98, 130.8, 196] };
 const PULSE = { cold: 0, title: 0.2, who: 0.6, say: 0.7, graph: 1, counter: 0.5, proved: 0.8, hold: 0.6, money: 0.6, keep: 0.8, plumber: 0.7, receipts: 0.7, cheat: 1, link: 0.8, agents: 1, dev: 0.8, close: 1 };
 const BPM = 112, beat = 60 / BPM;
 {
-  const phases = new Float64Array(8); let air = 0;
+  const phases = new Float64Array(8);
   for (let i = 0; i < N; i++) {
     const t = i / SR, sc = TL.scenes.find((s) => t >= s.start && t < s.end) ?? TL.scenes.at(-1), prev = TL.scenes[TL.scenes.indexOf(sc) - 1];
     const x = Math.min(1, (t - sc.start) / 0.8), A = CHORDS[sc.id], B = prev ? CHORDS[prev.id] : A;
     let v = 0;
     for (let k = 0; k < 4; k++) { const f = (A[k] ?? A[0] * 2) * x + (B[k] ?? B[0] * 2) * (1 - x); phases[k] += (2 * Math.PI * f) / SR; v += Math.sin(phases[k] + 0.3 * Math.sin(phases[k] * 0.5)) * (k === 0 ? 0.5 : 0.28); }
-    // pulse: a soft kick and a filtered off-beat hat, scaled by the scene's energy
-    const pe = PULSE[sc.id] ?? 0, bt = (t % beat) / beat, kick = Math.sin(2 * Math.PI * 52 * (t % beat)) * Math.exp(-(t % beat) * 18) * pe * 0.55;
-    const hat = (bt > 0.5 && bt < 0.54 ? rnd() * 0.12 : 0) * pe;
-    air += 0.02 * (rnd() - air);
+    // pulse: a soft kick, scaled by the scene's energy
+    const pe = PULSE[sc.id] ?? 0, kick = Math.sin(2 * Math.PI * 52 * (t % beat)) * Math.exp(-(t % beat) * 18) * pe * 0.55;
     let g = 1;
     const c = EV.cold, cl = EV.close;
     if (t > c.out - 0.6 && t < EV.title.hit) g = Math.max(0, 1 - (t - (c.out - 0.6)) / 0.6); // drop before the title
     if (t >= cl.silence && t < cl.logo) g = 0; // silence before the logo
     if (t > DURATION - 2.5) g *= Math.max(0, (DURATION - t) / 2.5);
-    const s = (v * 0.15 + air * 0.45 + kick + hat) * g;
+    const s = (v * 0.15 + kick) * g;
     bedL[i] = s * (1 + 0.15 * Math.sin(2 * Math.PI * 0.07 * t)); bedR[i] = s * (1 - 0.15 * Math.sin(2 * Math.PI * 0.07 * t));
   }
 }
