@@ -3,9 +3,11 @@
  * every frame and pipes them with out/soundtrack.wav into ffmpeg (H.264 + AAC, faststart MP4).
  * Uses the Chromium and ffmpeg already installed on the machine; nothing is downloaded.
  *
- *   node video/render.mjs                     full film -> video/release/kept-demo.mp4
- *   node video/render.mjs --stills 3,16.5,40  review frames -> video/out/stills/*.jpg
- *   node video/render.mjs --from 90 --to 111  a section (for review) -> video/out/section.mp4
+ *   node video/render.mjs --cut short         submission cut (< 3:00) -> video/release/kept-demo.mp4
+ *   node video/render.mjs --cut full          extended cut           -> video/release/kept-demo-extended.mp4
+ *   node video/render.mjs --cut full --stills 3,16.5,40   review frames -> video/out/stills/*.jpg
+ *   node video/render.mjs --cut full --from 90 --to 111   a section     -> video/out/section.mp4
+ * Build the matching soundtrack first: node video/sfx.mjs <cut>.
  *
  * Env: KEPT_CHROME (optional Chromium path), FFMPEG (default "ffmpeg"), WORKERS (parallel pages, default 4).
  */
@@ -28,6 +30,8 @@ const args = process.argv.slice(2);
 const opt = (k) => { const i = args.indexOf(`--${k}`); return i >= 0 ? args[i + 1] : undefined; };
 const FFMPEG = process.env.FFMPEG ?? "ffmpeg";
 const WORKERS = Number(process.env.WORKERS ?? 4);
+const CUT = opt("cut") ?? "full";
+if (!["short", "full"].includes(CUT)) throw new Error("--cut must be short or full");
 
 const server = createServer((req, res) => {
   const rel = normalize(decodeURIComponent(new URL(req.url, "http://x").pathname)).replace(/^[\\/]+/, "").replace(/\\/g, "/");
@@ -37,7 +41,7 @@ const server = createServer((req, res) => {
   createReadStream(file).pipe(res);
 });
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
-const URL0 = `http://127.0.0.1:${server.address().port}/video/index.html`;
+const URL0 = `http://127.0.0.1:${server.address().port}/video/index.html?cut=${CUT}`;
 
 const browser = await chromium.launch({ executablePath: process.env.KEPT_CHROME || undefined });
 async function openPage() {
@@ -54,18 +58,18 @@ try {
   if (opt("stills")) {
     mkdirSync(join(OUT, "stills"), { recursive: true });
     const page = await openPage();
-    for (const t of opt("stills").split(",").map(Number)) { writeFileSync(join(OUT, "stills", `t${t.toFixed(2).padStart(6, "0")}.jpg`), await frame(page, t)); }
+    for (const t of opt("stills").split(",").map(Number)) { writeFileSync(join(OUT, "stills", `${CUT}-t${t.toFixed(2).padStart(6, "0")}.jpg`), await frame(page, t)); }
     console.log("stills written to video/out/stills");
   } else {
     const page0 = await openPage();
     const fps = await page0.evaluate(() => window.FPS), total = await page0.evaluate(() => window.FRAMES);
     const from = Math.round(Number(opt("from") ?? 0) * fps), to = Math.min(total, Math.round(Number(opt("to") ?? total / fps) * fps));
     const section = opt("from") !== undefined || opt("to") !== undefined;
-    const out = section ? join(OUT, "section.mp4") : join(HERE, "release", "kept-demo.mp4");
+    const out = section ? join(OUT, "section.mp4") : join(HERE, "release", CUT === "short" ? "kept-demo.mp4" : "kept-demo-extended.mp4");
     mkdirSync(dirname(out), { recursive: true });
     if (existsSync(out)) unlinkSync(out);
     const ff = spawn(FFMPEG, ["-hide_banner", "-loglevel", "error", "-y", "-f", "image2pipe", "-framerate", String(fps), "-c:v", "mjpeg", "-i", "-",
-      "-ss", String(from / fps), "-i", join(OUT, "soundtrack.wav"),
+      "-ss", String(from / fps), "-i", join(OUT, `soundtrack-${CUT}.wav`),
       "-map", "0:v", "-map", "1:a", "-shortest",
       "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-maxrate", "4500k", "-bufsize", "9000k", "-pix_fmt", "yuv420p", "-profile:v", "high", "-level", "4.1", "-r", String(fps), "-g", String(fps * 2),
       "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", out], { stdio: ["pipe", "inherit", "inherit"] });

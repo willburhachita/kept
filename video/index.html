@@ -10,59 +10,59 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
 body { font-family: Inter, system-ui, sans-serif; font-weight: 600; letter-spacing: -0.05em; color: var(--ink); -webkit-font-smoothing: antialiased; }
-#stage { position: absolute; inset: 0; overflow: hidden; background: var(--canvas); perspective: 2400px; }
+#stage { position: absolute; inset: 0; overflow: hidden; background: var(--canvas); }
 .layer { position: absolute; inset: 0; }
-.scene { position: absolute; inset: 0; display: none; perspective: 2400px; }
+.scene { position: absolute; inset: 0; display: none; perspective: 2400px; overflow: hidden; }
 .glow { position: absolute; inset: -20%; pointer-events: none; }
 .w { display: inline-block; white-space: pre; will-change: transform, opacity; }
 .gray { color: var(--muted); }
-.big { font-size: 112px; line-height: 0.98; }
-.mid { font-size: 64px; line-height: 1.04; }
+.blue { color: var(--blue); }
 .cap { position: absolute; left: 0; right: 0; text-align: center; }
-/* app screen */
+.shout { position: absolute; z-index: 20; font-size: 46px; letter-spacing: -0.02em; text-transform: uppercase; padding: 14px 26px; border-radius: 16px; background: var(--ink); color: #fff; white-space: nowrap; box-shadow: 0 20px 60px -10px rgba(0,0,0,.4); }
+.shout.b { background: var(--blue); }
 .screen { position: absolute; left: 960px; top: 540px; width: 1440px; height: 810px; margin: -405px 0 0 -720px; border-radius: 22px; overflow: hidden; background: #f5f5f5;
   box-shadow: 0 60px 120px -30px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.06); transform-origin: 50% 50%; backface-visibility: hidden; }
 .screen .inner { position: absolute; left: 0; top: 0; width: 1440px; height: 810px; transform-origin: 0 0; }
 .screen img { position: absolute; left: 0; top: 0; width: 1440px; height: 810px; }
-.cursor { position: absolute; width: 26px; height: 26px; margin: -3px 0 0 -5px; z-index: 5; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
-.ripple { position: absolute; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; border: 3px solid var(--blue); z-index: 4; }
-.hl { position: absolute; border-radius: 14px; box-shadow: 0 0 0 3px var(--blue), 0 0 40px rgba(0,102,245,.35); z-index: 3; }
-/* chrome */
-#chapters { position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 50; }
+.cursor { position: absolute; width: 46px; height: 46px; margin: -4px 0 0 -8px; z-index: 6; filter: drop-shadow(0 6px 10px rgba(0,0,0,.35)); transform-origin: 8px 4px; }
+.ripple { position: absolute; width: 70px; height: 70px; margin: -35px 0 0 -35px; border-radius: 50%; border: 4px solid var(--blue); z-index: 5; }
+.hl { position: absolute; border-radius: 14px; box-shadow: 0 0 0 3px var(--blue), 0 0 50px rgba(0,102,245,.45); z-index: 4; }
+#chapters { position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 50; }
 #pills { display: flex; gap: 6px; padding: 6px; border-radius: 999px; background: rgba(255,255,255,.72); box-shadow: 0 8px 30px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.05); backdrop-filter: blur(10px); }
 .pill { position: relative; padding: 9px 18px; border-radius: 999px; font-size: 17px; letter-spacing: -0.02em; color: #6b6b6b; overflow: hidden; }
-.pill.on { background: var(--ink); color: #fff; }
 .pill .shine { position: absolute; top: 0; bottom: 0; width: 60px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent); }
 #ruler { position: relative; width: 760px; height: 14px; }
-#ruler i { position: absolute; bottom: 0; width: 2px; background: rgba(0,0,0,.18); border-radius: 1px; }
+#ruler i { position: absolute; bottom: 0; width: 2px; border-radius: 1px; }
 #tag { position: absolute; right: 40px; top: 34px; z-index: 60; font-size: 18px; letter-spacing: -0.02em; padding: 10px 16px; border-radius: 999px; background: rgba(10,10,10,.82); color: #fff; display: flex; align-items: center; gap: 10px; }
 #tag b { width: 9px; height: 9px; border-radius: 50%; background: var(--blue); display: inline-block; }
 #dot { position: absolute; left: 0; top: 0; border-radius: 50%; background: var(--blue); z-index: 70; box-shadow: 0 0 30px rgba(0,102,245,.6); }
 #flash { position: absolute; inset: 0; background: #fff; z-index: 80; pointer-events: none; opacity: 0; }
-/* cold open chat */
-.chat { position: absolute; left: 50%; top: 120px; width: 760px; margin-left: -380px; zoom: 1.32; }
-.bub { position: absolute; max-width: 560px; padding: 20px 28px; border-radius: 32px; font-size: 40px; letter-spacing: -0.03em; font-weight: 500; }
+.chat { position: absolute; left: 50%; top: 110px; width: 760px; margin-left: -380px; zoom: 1.32; transform-origin: 70% 60%; }
+.bub { position: absolute; max-width: 600px; padding: 20px 28px; border-radius: 32px; font-size: 40px; letter-spacing: -0.03em; font-weight: 500; white-space: nowrap; }
 .bub.me { right: 0; background: #fff; color: var(--ink); border-bottom-right-radius: 10px; }
 .bub.them { left: 0; background: #262626; color: #fff; border-bottom-left-radius: 10px; }
-.meta { position: absolute; font-size: 22px; letter-spacing: -0.01em; color: #7a7a7a; font-weight: 500; }
+.meta { position: absolute; font-size: 22px; letter-spacing: -0.01em; color: #7a7a7a; font-weight: 500; white-space: nowrap; }
 .chip { display: inline-flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 16px; background: #f0f0f0; font-size: 26px; margin-top: 12px; font-weight: 500; }
-/* cards */
 .card { position: absolute; border-radius: 28px; background: #fff; box-shadow: 0 30px 80px -20px rgba(0,0,0,.25), 0 0 0 1px rgba(0,0,0,.05); }
 .dark { background: #141414; color: #fff; box-shadow: 0 30px 80px -20px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08); }
 .eyebrow { font-size: 20px; letter-spacing: -0.01em; color: var(--muted); font-weight: 500; }
 .crop { position: absolute; overflow: hidden; border-radius: 22px; background: #fff; box-shadow: 0 30px 80px -20px rgba(0,0,0,.3), 0 0 0 1px rgba(0,0,0,.06); }
 .crop img { position: absolute; }
-.term { position: absolute; left: 260px; top: 230px; width: 1400px; height: 640px; border-radius: 26px; background: #0d0d0d; box-shadow: 0 50px 120px -30px rgba(0,102,245,.35), 0 0 0 1px rgba(255,255,255,.08); font-family: Mono, monospace; letter-spacing: 0; font-weight: 500; color: #d6d6d6; padding: 34px 40px; overflow: hidden; }
-.term .row { position: relative; height: 104px; font-size: 22px; line-height: 1.5; }
+.toast { position: absolute; width: 560px; padding: 22px 26px; border-radius: 24px; background: rgba(28,28,28,.95); color: #fff; display: flex; gap: 18px; align-items: center; box-shadow: 0 30px 80px -10px rgba(0,102,245,.45), 0 0 0 1px rgba(255,255,255,.1); }
+.toast .ic { width: 52px; height: 52px; border-radius: 14px; background: var(--blue); flex: none; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+.toast .t1 { font-size: 26px; letter-spacing: -0.02em; }
+.toast .t2 { font-size: 19px; color: #9a9a9a; font-weight: 500; letter-spacing: -0.01em; margin-top: 4px; }
+.term { position: absolute; left: 230px; top: 200px; width: 1460px; height: 680px; border-radius: 26px; background: #0d0d0d; box-shadow: 0 50px 120px -30px rgba(0,102,245,.35), 0 0 0 1px rgba(255,255,255,.08); font-family: Mono, monospace; letter-spacing: 0; font-weight: 500; color: #d6d6d6; padding: 34px 40px; overflow: hidden; }
+.term .row { position: relative; height: 110px; font-size: 23px; line-height: 1.5; }
 .term .req { color: #8a8a8a; }
 .term .req em { font-style: normal; color: #fff; }
 .term .res { color: #cfcfcf; }
-.badge { position: absolute; right: 0; top: 10px; font-family: Inter; letter-spacing: -0.01em; font-weight: 600; font-size: 22px; padding: 10px 20px; border-radius: 999px; }
+.badge { position: absolute; right: 0; top: 10px; font-family: Inter; letter-spacing: -0.01em; font-weight: 600; font-size: 24px; padding: 10px 22px; border-radius: 999px; }
 .b-paid { background: var(--blue); color: #fff; }
 .b-ask { box-shadow: inset 0 0 0 2px #fff; color: #fff; }
 .b-deny { background: #fff; color: #000; }
 .stacc { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 300px; letter-spacing: -0.06em; }
-svg text { font-family: Inter; }
+.phone { position: absolute; width: 470px; height: 900px; border-radius: 70px; background: #0b0b0b; box-shadow: 0 60px 140px -30px rgba(0,102,245,.5), 0 0 0 10px #1c1c1c, 0 0 0 12px #333; overflow: hidden; }
 </style>
 </head>
 <body>
@@ -74,7 +74,7 @@ svg text { font-family: Inter; }
   <div id="flash"></div>
 </div>
 <script type="module">
-import { CHAPTERS, DURATION, FPS, GITHUB, SCENES, SITE, T, VO } from "./timeline.js";
+import { FPS, GITHUB, SITE, buildTimeline } from "./timeline.js";
 
 // ---------- math
 const cl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -83,69 +83,74 @@ const eo = (x) => 1 - (1 - x) ** 3;
 const eio = (x) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
 const back = (x) => { const c = 1.6; return 1 + (c + 1) * (x - 1) ** 3 + c * (x - 1) ** 2; };
 const lerp = (a, b, x) => a + (b - a) * x;
-const springIn = (t, t0, d = 0.6) => back(P(t, t0, t0 + d));
+const springIn = (t, t0, d = 0.55) => back(P(t, t0, t0 + d));
 const h = (tag, cls, parent, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; };
 const css = (e, o) => { for (const k in o) e.style[k] = o[k]; };
 const show = (e, on) => { e.style.display = on ? "" : "none"; };
 const noise = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const shake = (t, t0, d = 0.35, a = 24) => (t > t0 && t < t0 + d ? (noise(t * 61) - 0.5) * a * (1 - (t - t0) / d) : 0);
 
 // ---------- data
-const [shots, graph, calls] = await Promise.all([
+const q = new URLSearchParams(location.search);
+const CUT = q.get("cut") || "full";
+const [shots, graph, calls, voIndex, typeClip] = await Promise.all([
   fetch("shots/shots.json").then((r) => r.json()),
   fetch("out/graph.json").then((r) => r.json()),
   fetch("data/agent-calls.json").then((r) => r.json()),
+  fetch("out/vo/index.json").then((r) => r.json()),
+  fetch("shots/type-clip.json").then((r) => r.json()),
 ]);
+const TL = buildTimeline(voIndex, CUT), EV = TL.ev, VO = TL.vo;
 await document.fonts.load("600 100px Inter"); await document.fonts.load("500 20px Mono");
 const imgCache = new Map();
 const IMG = (n) => { if (!imgCache.has(n)) { const i = new Image(); i.src = `shots/${n}.jpg`; imgCache.set(n, i); } return imgCache.get(n); };
-const allShots = Object.keys(shots).concat(["s01_landing", "s32_counter", "s34_proved", "s44_settled", "s42_delivered", "s32_live", "s53a_broken", "s53b_broken", "s52a_typing", "s52b_typing", "s60_mandate", "s62_approved", "s74_closed", "s71_bt20", "s13_template"]);
-await Promise.all([...new Set(allShots)].map((n) => IMG(n).decode().catch(() => console.warn("missing", n))));
+const TYPE = Array.from({ length: 32 }, (_, i) => `type/t${String(Math.min(96, (i + 1) * 3)).padStart(3, "0")}`);
+const NEED = ["y00_new", "y01_typed", "x61_scam2", "s34_proved", "s23_payer_review", "s20_payee_review", "s31_sim", "s32_live", "s24_payer_approved", "s40_deliver", "s41_chosen", "s42_delivered", "s43_review", "s44_settled", "x31_sam_bell", "x40_plumber", "s45_scroll0", "s51a_grid", "s52a_typing", "s53a_broken", "s50b_pre", "s52b_typing", "s53b_broken", "x10_link", "x11_link_typed", "x12_link_result", "s62_approved", "s70_bt", "s71_bt20", "s74_closed", "x50_docs", "x52_mcp_code", ...TYPE];
+await Promise.all(NEED.map((n) => IMG(n).decode().catch(() => console.error("missing shot", n))));
 
-// ---------- text helpers: kinetic words ("a b | c d" -> after | is gray)
+// ---------- text helpers ("a b | c d": after | is gray; *word* is blue)
 function words(parent, text, cls = "") {
-  const box = h("div", cls, parent);
-  let gray = false; const ws = [];
+  const box = h("div", cls, parent); let gray = false; const ws = [];
   for (const part of text.split(" ")) {
     if (part === "|") { gray = true; continue; }
-    const s = h("span", "w" + (gray ? " gray" : ""), box, part + " ");
-    ws.push(s);
+    const blue = /^\*.*\*[.,!?]?$/.test(part);
+    ws.push(h("span", "w" + (gray ? " gray" : "") + (blue ? " blue" : ""), box, part.replace(/\*/g, "") + " "));
   }
   box.ws = ws; return box;
 }
-function playWords(box, t, t0, per = 0.09, dur = 0.5) {
-  box.ws.forEach((s, i) => { const x = P(t, t0 + i * per, t0 + i * per + dur); s.style.opacity = eo(x); s.style.transform = `translateY(${(1 - eo(x)) * 40}px)`; s.style.filter = `blur(${(1 - x) * 8}px)`; });
-}
-function fadeBox(box, t, a, b, d = 0.4) { box.style.opacity = P(t, a, a + d) * (1 - P(t, b - d, b)); }
+const rise = (s, x, d = 32) => { s.style.opacity = eo(x); s.style.transform = `translateY(${(1 - eo(x)) * d}px)`; s.style.filter = x < 1 ? `blur(${(1 - x) * 7}px)` : ""; };
+function playWords(box, t, t0, per = 0.07, dur = 0.4) { box.ws.forEach((s, i) => rise(s, P(t, t0 + i * per, t0 + i * per + dur))); }
+/** words appear as the narrator reaches them (spread across [a, b]) */
+function spanWords(box, t, a, b, lead = 0.05) { const n = box.ws.length; box.ws.forEach((s, i) => { const t0 = a + ((b - a) * i) / n - lead; rise(s, P(t, t0, t0 + 0.3)); }); }
+const voWords = (box, t, id) => VO[id] && spanWords(box, t, VO[id].start, VO[id].end);
+const pop = (e, t, t0, from = 0.7) => { const k = springIn(t, t0); e.style.opacity = P(t, t0, t0 + 0.12); e.style.transform = `scale(${from + (1 - from) * k})`; };
 
 // ---------- app screen with camera, cursor and click ripple
 function Screen(parent) {
   const el = h("div", "screen", parent), inner = h("div", "inner", el);
   const a = h("img", "", inner), b = h("img", "", inner);
   const hl = h("div", "hl", inner), rip = h("div", "ripple", inner);
-  const cur = h("div", "cursor", inner, `<svg viewBox="0 0 24 24" width="26" height="26"><path d="M4 2l16 9.5-7 1.5-3.5 6.5z" fill="#0a0a0a" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>`);
+  const cur = h("div", "cursor", inner, `<svg viewBox="0 0 24 24" width="46" height="46"><defs><linearGradient id="cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#d9d9d9"/></linearGradient></defs><path d="M4 2l16 9.5-7 1.5-3.5 6.5z" fill="url(#cg)" stroke="#0a0a0a" stroke-width="1.4" stroke-linejoin="round"/></svg>`);
   return {
-    el,
-    /** shot A crossfading to shot B by mix; cam = [fx, fy, zoom] in shot CSS px */
+    el, inner,
     set(nA, nB = null, mix = 0, cam = [720, 405, 1]) {
       if (a.dataset.n !== nA) { a.src = IMG(nA).src; a.dataset.n = nA; }
       if (nB) { if (b.dataset.n !== nB) { b.src = IMG(nB).src; b.dataset.n = nB; } b.style.opacity = mix; show(b, true); } else show(b, false);
       const [fx, fy, z] = cam;
-      const tx = cl(720 - fx * z, 1440 - 1440 * z, 0), ty = cl(405 - fy * z, 810 - 810 * z, 0);
-      inner.style.transform = `translate(${tx}px, ${ty}px) scale(${z})`;
+      inner.style.transform = `translate(${cl(720 - fx * z, 1440 - 1440 * z, 0)}px, ${cl(405 - fy * z, 810 - 810 * z, 0)}px) scale(${z})`;
     },
-    cursor(x, y, on = true) { show(cur, on); css(cur, { left: x + "px", top: y + "px" }); },
-    ripple(x, y, k) { show(rip, k > 0 && k < 1); css(rip, { left: x + "px", top: y + "px", transform: `scale(${0.3 + k * 1.4})`, opacity: 1 - k }); },
-    highlight(r, o) { show(hl, o > 0.01); if (r) css(hl, { left: r[0] - 6 + "px", top: r[1] - 6 + "px", width: r[2] + 12 + "px", height: r[3] + 12 + "px", opacity: o }); },
+    cursor(x, y, on = true, press = 0) { show(cur, on); css(cur, { left: x + "px", top: y + "px", transform: `scale(${1 - 0.18 * press})` }); },
+    ripple(x, y, k) { show(rip, k > 0 && k < 1); css(rip, { left: x + "px", top: y + "px", transform: `scale(${0.3 + k * 1.5})`, opacity: 1 - k }); },
+    highlight(r, o) { show(hl, !!r && o > 0.01); if (r) css(hl, { left: r[0] - 6 + "px", top: r[1] - 6 + "px", width: r[2] + 12 + "px", height: r[3] + 12 + "px", opacity: o }); },
     pose({ x = 0, y = 0, s = 1, rx = 0, ry = 0, rz = 0, o = 1 }) { el.style.transform = `translate(${x}px, ${y}px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg) scale(${s})`; el.style.opacity = o; },
+    off() { this.cursor(0, 0, false); this.ripple(0, 0, 0); this.highlight(null, 0); },
   };
 }
 const R = (n, k) => { const r = shots[n]?.rects?.[k]; return r ? [r.x, r.y, r.width, r.height] : null; };
 const ctr = (r) => [r[0] + r[2] / 2, r[1] + r[3] / 2];
-/** cursor path: from p0 to p1 between t0..t1, click at tc */
 function cursorTo(sc, t, from, to, t0, t1, tc) {
   const k = eio(P(t, t0, t1));
-  const x = lerp(from[0], to[0], k), y = lerp(from[1], to[1], k) - Math.sin(Math.PI * k) * 40;
-  sc.cursor(x, y, true);
+  sc.cursor(lerp(from[0], to[0], k), lerp(from[1], to[1], k) - Math.sin(Math.PI * k) * 50, true, tc ? Math.sin(Math.PI * P(t, tc - 0.08, tc + 0.12)) : 0);
   sc.ripple(to[0], to[1], tc ? P(t, tc, tc + 0.45) : 0);
 }
 function Crop(parent, name, r, scale = 1) {
@@ -154,367 +159,557 @@ function Crop(parent, name, r, scale = 1) {
   css(im, { width: 1440 * scale + "px", height: 810 * scale + "px", left: -r[0] * scale + "px", top: -r[1] * scale + "px" });
   return el;
 }
+function Burst(parent, color = "rgba(0,102,245,.5)", n = 28) {
+  const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "-100 -100 200 200"); css(svg, { position: "absolute", width: "3000px", height: "3000px", pointerEvents: "none" });
+  for (let i = 0; i < n; i++) { const p = document.createElementNS(NS, "path"); const a = (i / n) * Math.PI * 2, w = (Math.PI / n) * 0.55; p.setAttribute("d", `M0 0 L${100 * Math.cos(a - w)} ${100 * Math.sin(a - w)} L${100 * Math.cos(a + w)} ${100 * Math.sin(a + w)} Z`); p.setAttribute("fill", color); svg.appendChild(p); }
+  parent.appendChild(svg);
+  return (t, t0, at = [960, 540], life = 1.6) => { const k = P(t, t0, t0 + life); css(svg, { left: at[0] - 1500 + "px", top: at[1] - 1500 + "px", opacity: k > 0 && k < 1 ? Math.sin(Math.PI * k) : 0, transform: `rotate(${(t - t0) * 14}deg) scale(${0.4 + 0.8 * eo(k)})` }); };
+}
+const Toast = (parent, title, body, icon = "$") => h("div", "toast", parent, `<div class="ic">${icon}</div><div><div class="t1">${title}</div><div class="t2">${body}</div></div>`);
+const glow = (el, bg, g = "rgba(0,102,245,.18)", at = "50% 60%") => { el.style.background = bg; const d = h("div", "glow", el); d.style.background = `radial-gradient(ellipse 50% 40% at ${at}, ${g}, transparent 70%)`; return d; };
+const shoutEl = (parent, text, x, y, blue = false) => { const e = h("div", "shout" + (blue ? " b" : ""), parent, text); css(e, { left: x + "px", top: y + "px" }); return e; };
+const shoutAt = (e, t, a, b) => { const k = springIn(t, a, 0.45); e.style.opacity = P(t, a, a + 0.1) * (1 - P(t, b - 0.2, b)); e.style.transform = `scale(${0.6 + 0.4 * k}) rotate(${-2 + 2 * k}deg)`; };
 
 // ---------- global chrome
 const $ = (id) => document.getElementById(id);
-const pills = CHAPTERS.slice(1, -1).map((c) => { const p = h("div", "pill", $("pills"), c.label); p.shine = h("div", "shine", p); p.c = c; return p; });
+const pills = TL.chapters.map((c) => { const p = h("div", "pill", $("pills"), c.label); p.shine = h("div", "shine", p); p.c = c; return p; });
 for (let i = 0; i <= 60; i++) { const tk = h("i", "", $("ruler")); css(tk, { left: (i / 60) * 758 + "px", height: (i % 5 === 0 ? 14 : 7) + "px" }); }
 const dot = $("dot"), tag = $("tag"), flash = $("flash");
-let D = null; // dot state set by scenes: {x,y,r,o}
+let D = null, TAG = null, DARK = false;
 const setDot = (x, y, r = 14, o = 1) => { D = { x, y, r, o }; };
 
 // ---------- scenes
 const S = {};
 const root = $("scenes");
-function scene(id, build, update) { const el = h("div", "scene", root); const sc = SCENES.find((s) => s.id === id); S[id] = { el, sc, ctx: build(el), update }; }
-const glow = (el, bg, g = "rgba(0,102,245,.18)", at = "50% 60%") => { el.style.background = bg; const d = h("div", "glow", el); d.style.background = `radial-gradient(ellipse 50% 40% at ${at}, ${g}, transparent 70%)`; return d; };
+function scene(id, build, update) { const sc = TL.scenes.find((s) => s.id === id); if (!sc) return; const el = h("div", "scene", root); S[id] = { el, sc, ctx: build(el, EV[id], sc), update }; }
 
 // 1. COLD OPEN
-scene("cold", (el) => {
+scene("cold", (el, E) => {
   el.style.background = "#000";
-  const A = h("div", "chat", el), B = h("div", "chat", el);
+  const U = h("div", "chat", el), A = h("div", "chat", el), B = h("div", "chat", el);
   const mk = (box, list) => list.map((m) => {
     if (m.div) { const d = h("div", "meta", box, m.div); css(d, { left: "0", right: "0", textAlign: "center", top: m.y + "px" }); d.m = m; return d; }
     const b = h("div", "bub " + m.side, box, m.text + (m.file ? `<div class="chip">${m.file}</div>` : "")); b.style.top = m.y + "px"; b.m = m;
-    if (m.status) { const s = h("div", "meta", box, m.status); css(s, { right: "8px", top: m.y + 104 + "px" }); b.st = s; }
+    if (m.status) { const s = h("div", "meta", box, m.status); css(s, { right: "8px", top: m.y + (m.file ? 165 : 104) + "px" }); b.st = s; }
     return b;
   });
-  const bt = T.bubbles;
-  const a = mk(A, [{ div: "Mon 10:02", y: 0, t: 0.1 }, { side: "me", text: "Logo by Friday?", y: 50, t: bt[0] }, { side: "them", text: "Send $100 to start.", y: 160, t: bt[1] }, { side: "me", text: "Sent.", y: 270, t: bt[2], sent: true }, { div: "Friday", y: 400, t: 2.6 }, { side: "me", text: "Hello?", y: 450, t: bt[3] }, { side: "me", text: "Are you there?", y: 560, t: bt[4], status: "Not delivered", st: T.notDelivered }]);
-  const b = mk(B, [{ div: "Designer · Tue 16:40", y: 0, t: 4.9 }, { side: "me", text: "Final logo attached.", y: 50, t: bt[5], file: "acme-logo.svg" }, { side: "them", text: "Love it. Paying now!", y: 245, t: bt[6] }, { side: "me", text: "Paid?", y: 355, t: bt[7] }, { side: "me", text: "Hello?", y: 465, t: bt[8], status: "Seen", st: T.seen }]);
-  const line = h("div", "cap big", el); line.style.top = "430px"; line.style.color = "#fff";
-  const l1 = words(line, "The payment worked."), l2 = words(line, "| The promise didn't.");
-  return { A, B, a, b, line, l1, l2 };
-}, (t, c) => {
-  const pop = (arr) => arr.forEach((e) => { const k = springIn(t, e.m.t, 0.5); e.style.opacity = P(t, e.m.t, e.m.t + 0.15); e.style.transform = `scale(${0.6 + 0.4 * k}) translateY(${(1 - P(t, e.m.t, e.m.t + 0.4)) * 30}px)`; e.style.transformOrigin = e.m.side === "them" ? "0 100%" : "100% 100%"; if (e.st) e.st.style.opacity = P(t, e.m.st, e.m.st + 0.2); });
-  pop(c.a); pop(c.b);
-  const f = P(t, T.flip, T.flip + 0.45);
-  c.A.style.transform = `rotateY(${eio(f) * 90}deg)`; show(c.A, f < 1);
-  const g = P(t, T.flip + 0.3, T.flip + 0.75);
-  c.B.style.transform = `rotateY(${(1 - eo(g)) * -90}deg)`; show(c.B, g > 0 && t < 9.9); c.B.style.opacity = 1 - P(t, 9.2, 9.8);
-  playWords(c.l1, t, T.line1, 0.12); playWords(c.l2, t, T.line2, 0.12);
-  c.line.style.opacity = 1 - P(t, T.coldOut, T.coldOut + 0.5);
-  // the dot: leaves with "Sent.", then returns toward the title
-  if (t > T.dotLeave - 0.4 && t < T.dotLeave + 1.2) {
-    const sent = c.a[3].getBoundingClientRect();
-    const k = P(t, T.dotLeave, T.dotLeave + 1.0);
-    const x0 = sent.right - 30, y0 = sent.top + sent.height / 2;
-    setDot(lerp(x0, 2000, eio(k) ** 1.4), y0 - Math.sin(k * Math.PI) * 260 - k * 300, 14 + k * 6, P(t, T.dotLeave - 0.4, T.dotLeave - 0.1));
+  const u = E.anyUpdate.length ? mk(U, [{ div: "To: Designer", y: 0, t: E.anyUpdate[0] - 0.4 }, ...E.anyUpdate.map((t, i) => ({ side: "me", text: "Any update?", y: 50 + i * 110, t, status: i === 3 ? "Delivered" : null, st: t + 0.25 }))]) : [];
+  const a = mk(A, [{ div: "Mon 10:02", y: 0, t: E.bubbles[0] - 0.2 }, { side: "me", text: "Logo by Friday?", y: 50, t: E.bubbles[0] }, { side: "them", text: "Sure. Send $100 to start.", y: 160, t: E.bubbles[1] }, { side: "me", text: "Sent.", y: 270, t: E.bubbles[2], status: "Read 9:41", st: E.read }]);
+  const b = mk(B, [{ div: "Designer · Friday", y: 0, t: E.flip + 0.3 }, { side: "me", text: "Final logo attached.", y: 50, t: E.logoBubble, file: "acme-logo.svg" }, { side: "them", text: "Love it. Paying today!", y: 245, t: E.logoBubble + 0.55 }, { div: "Client · last seen 3 weeks ago", y: 380, t: E.lastSeen }]);
+  const parts = Array.from({ length: 18 }, () => { const p = h("div", "", B); css(p, { position: "absolute", width: "14px", height: "14px", borderRadius: "50%", background: "#4a4a4a" }); return p; });
+  const line = h("div", "cap", el); css(line, { top: "380px", color: "#fff", fontSize: "120px", lineHeight: "1.02" });
+  const l1 = words(line, "The payment *worked.*"), l2 = words(line, "| The promise didn't.");
+  return { U, A, B, u, a, b, parts, line, l1, l2 };
+}, (t, c, E) => {
+  const popAll = (arr) => arr.forEach((e) => { const k = springIn(t, e.m.t, 0.5); e.style.opacity = P(t, e.m.t, e.m.t + 0.12); e.style.transform = `scale(${0.6 + 0.4 * k}) translateY(${(1 - P(t, e.m.t, e.m.t + 0.35)) * 30}px)`; e.style.transformOrigin = e.m.side === "them" ? "0 100%" : "100% 100%"; if (e.st) e.st.style.opacity = P(t, e.m.st, e.m.st + 0.15); });
+  popAll(c.u); popAll(c.a); popAll(c.b);
+  show(c.U, c.u.length > 0 && t < E.bubbles[0] - 0.1); c.U.style.opacity = 1 - P(t, E.bubbles[0] - 0.4, E.bubbles[0] - 0.15);
+  const z = eio(P(t, E.read, E.read + 0.45)) * (1 - eio(P(t, E.flip - 0.25, E.flip)));
+  c.A.style.transform = `rotateY(${eio(P(t, E.flip, E.flip + 0.4)) * 90}deg) scale(${1 + 0.42 * z}) translate(${-40 * z}px, ${-70 * z}px)`;
+  show(c.A, t >= E.bubbles[0] - 0.3 && t < E.flip + 0.4);
+  const g = P(t, E.flip + 0.25, E.flip + 0.6);
+  c.B.style.transform = `rotateY(${(1 - eo(g)) * -90}deg)`; show(c.B, g > 0 && t < E.line1); c.B.style.opacity = 1 - P(t, E.line1 - 0.3, E.line1 - 0.05);
+  const them = c.b[2], pk = P(t, E.poof, E.poof + 0.7);
+  if (t > E.poof) them.style.opacity = 1 - P(t, E.poof, E.poof + 0.12);
+  c.parts.forEach((p, i) => { const a = noise(i) * Math.PI * 2, r = 40 + noise(i + 9) * 280; css(p, { left: 170 + Math.cos(a) * r * eo(pk) + "px", top: 285 + Math.sin(a) * r * eo(pk) * 0.6 + "px", opacity: pk > 0 && pk < 1 ? 1 - pk : 0 }); });
+  playWords(c.l1, t, E.line1, 0.1); playWords(c.l2, t, E.line2, 0.1);
+  const lw = c.l2.ws.at(-1); lw.style.transform += ` translateX(${shake(t, E.line2 + 0.4, 0.4, 30)}px)`;
+  c.line.style.opacity = 1 - P(t, E.out, E.out + 0.4);
+  if (t > E.bubbles[2] && t < E.dotLeave + 1.2) {
+    const sent = c.a[3].getBoundingClientRect(), k = P(t, E.dotLeave, E.dotLeave + 1.0);
+    setDot(lerp(sent.right - 30, 2000, eio(k) ** 1.4), sent.top + sent.height / 2 - Math.sin(k * Math.PI) * 260 - k * 300, 14 + k * 6, P(t, E.bubbles[2] + 0.1, E.bubbles[2] + 0.3));
   }
+  if (t > E.dotReturn) { const k = P(t, E.dotReturn, E.dotReturn + 0.75); setDot(lerp(-60, 1140, eio(k)), 620 - Math.sin(Math.PI * eio(k)) * 380 + (1 - k) * 200, 18 + 20 * k, 1); }
 });
 
 // 2. TITLE
-scene("title", (el) => {
+scene("title", (el, E) => {
   el.style.background = "var(--canvas)";
+  const burst = Burst(el, "rgba(0,102,245,.10)");
   const word = h("div", "", el); css(word, { position: "absolute", left: "0", right: "0", top: "250px", textAlign: "center", fontSize: "400px", lineHeight: "1", letterSpacing: "-0.065em" });
   const k = h("span", "", word, "Kept"); const per = h("span", "", word); css(per, { display: "inline-block", width: "96px" });
   const ring = h("div", "", el); css(ring, { position: "absolute", width: "100px", height: "100px", margin: "-50px 0 0 -50px", borderRadius: "50%", border: "4px solid var(--blue)" });
-  const sub = h("div", "cap mid", el); sub.style.top = "760px";
-  const w = words(sub, "Money moves only when | a promise is kept.");
-  return { word, k, per, ring, w };
-}, (t, c) => {
-  const x = P(t, T.logoHit, T.logoHit + 0.5);
-  c.k.style.clipPath = `inset(0 ${100 - eo(x) * 100}% 0 0)`;
-  c.word.style.transform = `scale(${1.08 - 0.08 * eo(P(t, T.logoHit, T.logoHit + 1.4))})`;
-  const r = c.per.getBoundingClientRect();
-  const px = r.left + 46, py = r.bottom - 74;
-  const k = P(t, T.dotReturn, T.logoHit);
-  if (t < T.logoHit) setDot(lerp(-60, px, eio(k)), py - Math.sin(Math.PI * eio(k)) * 380 + (1 - k) * 200, 18 + 22 * k, 1);
-  else setDot(px, py, 40, 1 - P(t, 21.4, 21.9));
-  const rk = P(t, T.logoHit, T.logoHit + 0.9);
-  css(c.ring, { left: px + "px", top: py + "px", transform: `scale(${0.5 + rk * 6})`, opacity: rk > 0 && rk < 1 ? (1 - rk) : 0 });
-  playWords(c.w, t, T.sub, 0.08);
-  S.title.el.style.opacity = 1 - P(t, 21.5, 22);
+  const sub = h("div", "cap", el); css(sub, { top: "760px", fontSize: "60px" });
+  const w = words(sub, "Money moves only when | a promise is *kept.*");
+  return { burst, word, k, per, ring, w, sub };
+}, (t, c, E, sc) => {
+  c.k.style.clipPath = `inset(0 ${100 - eo(P(t, E.hit, E.hit + 0.4)) * 100}% 0 0)`;
+  c.word.style.transform = `scale(${1.08 - 0.08 * eo(P(t, E.hit, E.hit + 1.2))})`;
+  const r = c.per.getBoundingClientRect(), px = r.left + 46, py = r.bottom - 74;
+  setDot(px, py, 40, 1 - P(t, sc.end - 0.3, sc.end));
+  c.burst(t, E.hit, [px, py], 2.2);
+  const rk = P(t, E.hit, E.hit + 0.8); css(c.ring, { left: px + "px", top: py + "px", transform: `scale(${0.5 + rk * 6})`, opacity: rk > 0 && rk < 1 ? 1 - rk : 0 });
+  spanWords(c.w, t, E.sub, VO.t1.end);
+  c.word.style.opacity = c.sub.style.opacity = 1 - P(t, sc.end - 0.3, sc.end);
 });
 
-// 3. SAY IT
-scene("say", (el) => {
+// 3. WHO IT'S FOR
+scene("who", (el, E) => {
+  glow(el, "var(--canvas)", "rgba(0,102,245,.16)", "50% 50%");
+  const floats = [["s44_settled", [164, 302, 682, 298]], ["x40_plumber", [497, 459, 293, 147]], ["s62_approved", [160, 280, 560, 330]], ["s32_live", [188, 335, 634, 147]], ["s34_proved", [392, 80, 432, 82]], ["x31_sam_bell", [756, 66, 384, 270]]].map(([n, r], i) => { const e = Crop(el, n, r, 0.8); e.i = i; return e; });
+  const line = h("div", "cap", el); css(line, { top: "420px", fontSize: "120px" });
+  h("span", "", line, "For ");
+  const box = h("span", "", line); css(box, { display: "inline-block", position: "relative", background: "var(--ink)", color: "#fff", borderRadius: "26px", padding: "0 34px", overflow: "hidden", verticalAlign: "bottom", height: "140px", width: "720px", textAlign: "left", whiteSpace: "nowrap" });
+  const opts = ["freelancers.", "plumbers.", "suppliers."].map((s) => { const e = h("div", "", box, s); css(e, { position: "absolute", left: "34px", top: "6px" }); return e; });
+  const any = h("div", "cap", el); css(any, { top: "300px", fontSize: "86px" });
+  const aw = words(any, "Anyone who has ever heard:");
+  const bub = h("div", "bub them", el, "I'll pay you Friday."); css(bub, { left: "560px", top: "470px", fontSize: "64px", padding: "28px 44px", borderRadius: "46px", borderBottomLeftRadius: "14px" });
+  const typing = h("div", "bub them", el, `<span>●</span> <span>●</span> <span>●</span>`); css(typing, { left: "560px", top: "660px", fontSize: "34px", padding: "18px 30px" });
+  const joke = h("div", "", el, "It's Thursday. Of week four."); css(joke, { position: "absolute", left: "800px", top: "690px", fontSize: "34px", color: "#6b6b6b", letterSpacing: "-0.02em", fontWeight: "500" });
+  return { floats, line, opts, any, aw, bub, typing, joke };
+}, (t, c, E, sc) => {
+  c.floats.forEach((e) => { const a = (e.i / c.floats.length) * Math.PI * 2 + (t - sc.start) * 0.25; css(e, { left: 960 + Math.cos(a) * 760 - 230 + "px", top: 520 + Math.sin(a) * 380 - 110 + "px", opacity: 0.5 * P(t, sc.start, sc.start + 0.4), transform: `rotate(${Math.sin(a) * 6}deg) scale(${0.85 + 0.15 * Math.cos(a)})` }); });
+  c.line.style.opacity = t < E.friday - 0.05 ? P(t, sc.start, sc.start + 0.15) : 0;
+  c.opts.forEach((e, i) => { const a = E.swaps[i], b = E.swaps[i + 1] ?? 999; e.style.transform = `translateY(${t < b ? (1 - eo(P(t, a - 0.05, a + 0.22))) * 150 : -eo(P(t, b - 0.05, b + 0.22)) * 150}px)`; });
+  c.any.style.opacity = t >= E.friday - 0.05 ? 1 : 0; playWords(c.aw, t, E.friday - 0.05, 0.05);
+  pop(c.bub, t, E.fridayBubble, 0.5); c.bub.style.transformOrigin = "0 100%";
+  c.typing.style.opacity = P(t, E.dots, E.dots + 0.15); [...c.typing.children].forEach((s, i) => (s.style.opacity = 0.3 + 0.7 * Math.abs(Math.sin((t - E.dots) * 4 - i * 0.6))));
+  c.joke.style.opacity = P(t, E.dots + 0.2, E.dots + 0.4);
+  S.who.el.style.opacity = 1 - P(t, sc.end - 0.2, sc.end);
+});
+
+// 4. SAY IT (+ scam flag)
+scene("say", (el, E) => {
   glow(el, "var(--canvas)", "rgba(0,102,245,.16)", "50% 55%");
   const sc = Screen(el);
-  const top = h("div", "cap", el); css(top, { top: "64px", fontSize: "54px" });
-  const lead = h("span", "", top, "Say the deal the way you'd text ");
-  const box = h("span", "", top); css(box, { display: "inline-block", position: "relative", background: "var(--ink)", color: "#fff", borderRadius: "16px", padding: "4px 20px", overflow: "hidden", verticalAlign: "bottom", height: "72px", width: "370px", textAlign: "left", whiteSpace: "nowrap" });
-  const opts = ["a freelancer.", "a plumber.", "a supplier."].map((s) => { const e = h("div", "", box, s); css(e, { position: "absolute", left: "20px", top: "4px" }); return e; });
-  // Claude drafting illustration
-  const panel = h("div", "card dark", el); css(panel, { left: "1010px", top: "190px", width: "820px", height: "700px", padding: "44px" });
+  const typeImg = h("img", "", sc.inner); css(typeImg, { position: "absolute", left: typeClip.x + "px", top: typeClip.y + "px", width: typeClip.width + "px", height: typeClip.height + "px", zIndex: 2 });
+  const panel = h("div", "card dark", el); css(panel, { left: "1010px", top: "170px", width: "820px", height: "720px", padding: "44px" });
   h("div", "eyebrow", panel, "Claude · writing it down");
-  const pr = h("div", "", panel); pr.style.marginTop = "26px";
-  h("div", "eyebrow", pr, "Promises");
+  const pr = h("div", "", panel); pr.style.marginTop = "26px"; h("div", "eyebrow", pr, "Promises");
   const cards = ["Designer gets $300 for on-time delivery", "Client gets $200 back if nothing arrives on time"].map((s) => { const c = h("div", "", pr, `<span style="display:inline-block;width:26px;height:26px;border-radius:50%;background:var(--blue);margin-right:16px;vertical-align:-4px"></span>${s}`); css(c, { marginTop: "16px", padding: "24px 26px", background: "#1f1f1f", borderRadius: "18px", fontSize: "30px", letterSpacing: "-0.03em" }); return c; });
-  const rules = h("div", "", panel); rules.style.marginTop = "36px";
-  h("div", "eyebrow", rules, "Rules that move the money");
+  const rules = h("div", "", panel); rules.style.marginTop = "36px"; h("div", "eyebrow", rules, "Rules that move the money");
   const rl = ["$100 released up front", "$200 when the SVG is accepted", "Refund $200 if nothing by day 7"].map((s) => { const c = h("div", "", rules, s); css(c, { marginTop: "12px", fontSize: "28px", color: "#cfcfcf", letterSpacing: "-0.03em" }); return c; });
   const shimmer = h("div", "", panel); css(shimmer, { position: "absolute", left: "44px", right: "44px", top: "104px", height: "8px", borderRadius: "4px", background: "linear-gradient(90deg,#222,#0066f5,#222)", backgroundSize: "300% 100%" });
-  return { sc, top, opts, box, panel, cards, rl, shimmer };
-}, (t, c) => {
-  const s0 = T.screenIn;
-  const k = eo(P(t, s0, s0 + 1.1));
-  const d = eio(P(t, T.draft, T.draft + 0.9));
-  c.sc.pose({ y: (1 - k) * 700 + 40 - d * 20, rx: (1 - k) * 35 + 6 * (1 - d), ry: -8 * d, s: 0.9 + 0.08 * k - 0.32 * d, x: -d * 420, o: P(t, s0, s0 + 0.3) });
-  // typing frames (real captures every 12 characters)
-  const names = ["s10_new", ...Array.from({ length: 10 }, (_, i) => `s11_type${String((i + 1) * 12).padStart(3, "0")}`), "s12_typed"];
-  const tp = P(t, T.typeStart, T.typeEnd);
-  const idx = Math.min(names.length - 1, Math.floor(tp * (names.length - 1) + (tp > 0 ? 1 : 0)));
-  const ta = R("s10_new", "ta"), [cx, cy] = ctr(ta);
-  const z = 1 + 0.75 * eio(P(t, 23.2, 24.2)) - 0.45 * eio(P(t, 29.2, 30.0));
-  c.sc.set(names[idx], null, 0, [cx + 60, cy, z]);
-  c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0);
-  c.sc.highlight(ta, P(t, 23.4, 23.8) * (1 - P(t, 29.4, 29.8)));
-  // word box
-  c.top.style.opacity = P(t, 23.0, 23.4) * (1 - P(t, T.draft - 0.4, T.draft));
-  c.opts.forEach((e, i) => { const a = T.wordSwap[i], b = T.wordSwap[i + 1] ?? 99; const yIn = (1 - eo(P(t, a, a + 0.35))) * 70, yOut = -eo(P(t, b, b + 0.35)) * 70; e.style.transform = `translateY(${t < b ? yIn : yOut}px)`; e.style.opacity = t >= a - 0.01 ? 1 : 0; });
-  // drafting panel
-  c.panel.style.opacity = P(t, T.draft + 0.3, T.draft + 0.8);
-  c.panel.style.transform = `translateX(${(1 - eo(P(t, T.draft + 0.3, T.draft + 1.1))) * 200}px)`;
-  c.shimmer.style.backgroundPosition = `${(t * 120) % 300}% 0`; c.shimmer.style.opacity = 1 - P(t, T.draftCards[0] - 0.3, T.draftCards[0]);
-  c.cards.forEach((e, i) => { const k2 = springIn(t, T.draftCards[i], 0.55); e.style.opacity = P(t, T.draftCards[i], T.draftCards[i] + 0.2); e.style.transform = `translateY(${(1 - k2) * 40}px) scale(${0.94 + 0.06 * k2})`; });
-  c.rl.forEach((e, i) => { const a = T.draftRules + i * 0.25; e.style.opacity = P(t, a, a + 0.3); e.style.transform = `translateX(${(1 - eo(P(t, a, a + 0.4))) * 30}px)`; });
-  S.say.el.style.opacity = 1 - P(t, 35.6, 36);
-  if (t > 34.8) { const kk = P(t, 34.8, 36); setDot(lerp(1390, 960, eio(kk)), lerp(330, 540, eio(kk)), 10 + 10 * kk, P(t, 34.8, 35.1)); }
+  const sh = shoutEl(el, "Scam flagged.", 1300, 150);
+  const top = h("div", "cap", el); css(top, { top: "56px", fontSize: "54px" });
+  const tw = words(top, "Say the deal like you'd *text* it.");
+  return { sc, typeImg, panel, cards, rl, shimmer, sh, top, tw };
+}, (t, c, E, sc) => {
+  const k = eo(P(t, sc.start, sc.start + 0.8)), d = eio(P(t, E.draft, E.draft + 0.7)), sc4 = t >= E.scam;
+  const ta = R("y00_new", "ta"), [cx, cy] = ctr(ta);
+  c.typeImg.style.display = "none";
+  if (!sc4) {
+    c.sc.pose({ y: (1 - k) * 700 + 40 - d * 20, rx: (1 - k) * 35 + 4 * (1 - d), ry: -8 * d, s: 0.92 + 0.06 * k - 0.32 * d, x: -d * 420, o: P(t, sc.start, sc.start + 0.2) });
+    const z = 1 + 1.0 * eio(P(t, E.zoom, E.zoom + 0.7)) - 0.6 * eio(P(t, E.typeEnd + 0.1, E.draft + 0.2));
+    c.sc.set(t < E.send ? "y00_new" : "y01_typed", null, 0, [cx + 40, cy, z]);
+    if (t >= E.typeStart && t < E.send) { c.typeImg.style.display = "block"; const fi = Math.min(TYPE.length - 1, Math.floor(P(t, E.typeStart, E.typeEnd) * TYPE.length)); const src = IMG(TYPE[fi]).src; if (c.typeImg.src !== src) c.typeImg.src = src; }
+    c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0);
+    c.sc.highlight(ta, P(t, E.zoom + 0.2, E.zoom + 0.5) * (1 - P(t, E.typeEnd, E.typeEnd + 0.3)));
+    TAG = t < E.draft ? "Live app · PayPal simulator" : "Illustration · Claude drafting not run live";
+  } else {
+    const kk = eo(P(t, E.scam, E.scam + 0.5));
+    c.sc.pose({ y: 40 + (1 - kk) * 80, s: 0.94, rx: 3, o: 1 });
+    const pan = eio(P(t, E.scamFlag - 0.4, E.scamFlag + 0.4));
+    c.sc.set("x61_scam2", null, 0, [500, lerp(390, 620, pan), lerp(1.75, 1.55, pan)]);
+    c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0);
+    c.sc.highlight([196, 533, 594, 170], P(t, E.scamFlag, E.scamFlag + 0.3));
+    TAG = "Live app · real scam check";
+  }
+  c.panel.style.opacity = sc4 ? 1 - P(t, E.scam, E.scam + 0.25) : P(t, E.draft + 0.2, E.draft + 0.5);
+  c.panel.style.transform = `translateX(${(1 - eo(P(t, E.draft + 0.2, E.draft + 0.9))) * 200}px)`;
+  c.shimmer.style.backgroundPosition = `${(t * 120) % 300}% 0`; c.shimmer.style.opacity = 1 - P(t, E.cards[0] - 0.3, E.cards[0]);
+  c.cards.forEach((e, i) => pop(e, t, E.cards[i], 0.9));
+  c.rl.forEach((e, i) => { const a = E.rules + i * 0.22; e.style.opacity = P(t, a, a + 0.25); e.style.transform = `translateX(${(1 - eo(P(t, a, a + 0.35))) * 30}px)`; });
+  shoutAt(c.sh, t, E.scamFlag, sc.end);
+  voWords(c.tw, t, "s1"); c.top.style.opacity = 1 - P(t, E.typeStart + 0.5, E.typeStart + 0.8);
+  if (t > E.out - 0.7) { const kk = P(t, E.out - 0.7, E.out); setDot(lerp(1500, 960, eio(kk)), lerp(250, 540, eio(kk)), 10 + 10 * kk, P(t, E.out - 0.7, E.out - 0.5)); }
 });
 
-// 4. GRAPH: the real plumber-draft state graph, every path raced
-scene("graph", (el) => {
+// 5. GRAPH: the real plumber-draft state graph
+scene("graph", (el, E) => {
   glow(el, "#0a0a0a", "rgba(0,102,245,.22)", "55% 55%");
-  const G = graph.plumber.graph;
-  const NS = "http://www.w3.org/2000/svg";
+  const burst = Burst(el, "rgba(0,102,245,.18)");
+  const G = graph.plumber.graph, NS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(NS, "svg"); svg.setAttribute("width", 1920); svg.setAttribute("height", 1080); svg.style.position = "absolute"; el.appendChild(svg);
   const byDepth = {}; G.nodes.forEach((n, i) => (byDepth[n.depth] ??= []).push(i));
   const maxD = Math.max(...G.nodes.map((n) => n.depth));
-  const pos = G.nodes.map((n, i) => { const col = byDepth[n.depth], j = col.indexOf(i); return [260 + (n.depth / maxD) * 1420, 560 + (j - (col.length - 1) / 2) * Math.min(56, 640 / col.length)]; });
-  const eEls = G.edges.map(([a, b]) => { const p = document.createElementNS(NS, "path"); const [x1, y1] = pos[a], [x2, y2] = pos[b]; const mx = (x1 + x2) / 2; p.setAttribute("d", `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`); p.setAttribute("fill", "none"); p.setAttribute("stroke-width", "2"); svg.appendChild(p); p.len = p.getTotalLength(); p.style.strokeDasharray = p.len; return p; });
+  const pos = G.nodes.map((n, i) => { const col = byDepth[n.depth], j = col.indexOf(i); return [240 + (n.depth / maxD) * 1440, 570 + (j - (col.length - 1) / 2) * Math.min(56, 640 / col.length)]; });
+  const eEls = G.edges.map(([a, b]) => { const p = document.createElementNS(NS, "path"); const [x1, y1] = pos[a], [x2, y2] = pos[b]; const mx = (x1 + x2) / 2; p.setAttribute("d", `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`); p.setAttribute("fill", "none"); p.setAttribute("stroke-width", "2.2"); svg.appendChild(p); p.len = p.getTotalLength(); return p; });
   const nEls = G.nodes.map((n, i) => { const c = document.createElementNS(NS, "circle"); c.setAttribute("cx", pos[i][0]); c.setAttribute("cy", pos[i][1]); c.setAttribute("r", n.end ? 9 : 6); svg.appendChild(c); return c; });
-  const title = h("div", "", el); css(title, { position: "absolute", left: "120px", top: "90px", color: "#fff", fontSize: "72px", lineHeight: "1.02" });
-  const w = words(title, "Every possible path. | Checked before a cent moves.");
-  const stat = h("div", "", el); css(stat, { position: "absolute", left: "120px", bottom: "150px", color: "#fff", fontSize: "34px", letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" });
-  const lab = h("div", "eyebrow", el, "Plumber visit, first draft · the real state graph from Kept's verifier"); css(lab, { position: "absolute", left: "120px", bottom: "110px", color: "#7a7a7a" });
-  return { G, pos, eEls, nEls, w, stat, title };
-}, (t, c) => {
-  playWords(c.w, t, 36.6, 0.08);
-  const E = c.eEls.length, k = eio(P(t, T.graphRace, T.graphDone));
-  const lit = k * E;
-  c.eEls.forEach((p, i) => { const f = cl(lit - i); p.style.strokeDashoffset = p.len * (1 - (t < T.graphRace ? 0.0 : 1)) ; p.setAttribute("stroke", f <= 0 ? "#2a2a2a" : f < 1 ? "#0066f5" : `rgba(255,255,255,${0.32 + 0.3 * (1 - P(t, T.graphDone, T.graphDone + 1))})`); p.style.opacity = P(t, 36.2 + (i / E) * 0.8, 36.6 + (i / E) * 0.8); });
+  const proves = h("div", "cap", el); css(proves, { top: "420px", color: "#fff", fontSize: "150px" });
+  const pw = words(proves, "It *proves* the deal.");
+  const title = h("div", "", el); css(title, { position: "absolute", left: "120px", top: "84px", color: "#fff", fontSize: "64px", lineHeight: "1.04" });
+  const tw = words(title, "Every delivery. Every deadline. | Every order they could happen in.");
+  const big = h("div", "", el); css(big, { position: "absolute", left: "120px", bottom: "150px", color: "#fff", fontSize: "150px", lineHeight: "0.9", fontVariantNumeric: "tabular-nums" });
+  const lab = h("div", "", el, "possible futures for one plumber visit · the real state graph from Kept's verifier"); css(lab, { position: "absolute", left: "120px", bottom: "112px", color: "#7a7a7a", fontSize: "24px", fontWeight: "500", letterSpacing: "-0.01em" });
+  const ms = shoutEl(el, `Checked in ${Math.max(1, Math.round(graph.plumber.stats.ms))} ms`, 1340, 830, true);
+  return { burst, G, eEls, nEls, proves, pw, tw, big, lab, ms };
+}, (t, c, E, sc) => {
+  TAG = "Real output of Kept's verifier"; DARK = true;
+  playWords(c.pw, t, E.proves - 0.05, 0.08); c.proves.style.opacity = 1 - P(t, E.race - 0.25, E.race); c.proves.style.transform = `scale(${1 + 0.06 * P(t, E.proves, E.race)})`;
+  c.burst(t, E.proves, [960, 500], E.race - E.proves + 0.4);
+  const on = P(t, E.race - 0.2, E.race + 0.2), N = c.eEls.length, lit = eio(P(t, E.race, E.raceEnd)) * N;
+  c.eEls.forEach((p, i) => { const f = cl(lit - i); p.setAttribute("stroke", f <= 0 ? "#262626" : f < 1 ? "#0066f5" : `rgba(255,255,255,${0.3 + 0.3 * (1 - P(t, E.raceEnd, E.raceEnd + 1))})`); p.style.opacity = on; });
   const seen = new Set([0]); c.G.edges.forEach(([a, b], i) => { if (i < lit) seen.add(b); });
-  c.nEls.forEach((n, i) => { n.setAttribute("fill", seen.has(i) && t >= T.graphRace ? (c.G.nodes[i].end ? "#fff" : "#0066f5") : "#333"); n.style.opacity = P(t, 36.2, 37); });
-  const cur = Math.min(E - 1, Math.floor(lit));
-  if (t >= T.graphRace - 0.6 && t < T.graphDone) {
-    const p = c.eEls[cur], f = lit - cur; const pt = p.getPointAtLength(p.len * cl(f));
-    setDot(pt.x, pt.y, 11, 1);
-  } else if (t < T.graphRace) { const kk = P(t, 36, T.graphRace - 0.6); setDot(lerp(960, c.pos[0][0], eio(kk)), lerp(540, c.pos[0][1], eio(kk)), 20 - 9 * kk, 1); }
-  const st = Math.round(k * graph.plumber.stats.states), tr = Math.round(k * graph.plumber.stats.transitions), en = Math.round(k * graph.plumber.stats.terminalStates);
-  c.stat.innerHTML = `<span style="color:#0066f5">${st}</span> states &nbsp;·&nbsp; ${tr} transitions &nbsp;·&nbsp; ${en} endings` + (t > T.graphDone ? ` &nbsp;·&nbsp; <span style="color:#8a8a8a">checked in ${graph.plumber.stats.ms.toFixed(0)} ms</span>` : "");
-  c.stat.style.opacity = P(t, T.graphRace - 0.3, T.graphRace);
-  S.graph.el.style.opacity = 1 - P(t, 45.6, 46);
+  c.nEls.forEach((n, i) => { n.setAttribute("fill", seen.has(i) && t >= E.race ? (c.G.nodes[i].end ? "#fff" : "#0066f5") : "#333"); n.style.opacity = on; });
+  if (t >= E.race && t < E.raceEnd) { const cur = Math.min(N - 1, Math.floor(lit)); const p = c.eEls[cur]; const pt = p.getPointAtLength(p.len * cl(lit - cur)); setDot(pt.x, pt.y, 11, 1); }
+  const ph = VO.v2.ph;
+  c.tw.ws.forEach((s, i) => { const t0 = i < 2 ? ph[0] : i < 4 ? ph[1] : ph[2] + (i - 4) * 0.08; rise(s, P(t, t0, t0 + 0.3), 30); });
+  c.big.textContent = Math.round(eio(P(t, E.count - 0.2, E.count + 0.9)) * graph.plumber.stats.states);
+  c.big.style.opacity = P(t, E.count - 0.2, E.count); c.lab.style.opacity = P(t, E.count, E.count + 0.3);
+  shoutAt(c.ms, t, E.ms, sc.end);
+  S.graph.el.style.opacity = 1 - P(t, sc.end - 0.25, sc.end);
 });
 
-// 5. COUNTEREXAMPLE: the real logo-draft bug
-scene("counter", (el) => {
+// 6. COUNTEREXAMPLE
+scene("counter", (el, E) => {
   glow(el, "#000", "rgba(255,255,255,.06)", "50% 40%");
   const head = h("div", "", el); css(head, { position: "absolute", left: "120px", top: "96px", color: "#fff" });
   h("div", "eyebrow", head, "Logo deal, first draft").style.color = "#7a7a7a";
-  const big = h("div", "", head, "1 property violated"); css(big, { fontSize: "96px", marginTop: "14px", lineHeight: "1" });
-  const sub = h("div", "", head, "Designer gets $300 for on-time delivery."); css(sub, { fontSize: "40px", color: "#8a8a8a", marginTop: "18px", letterSpacing: "-0.03em" });
+  const big = h("div", "", head, "1 property violated"); css(big, { fontSize: "110px", marginTop: "14px", lineHeight: "1" });
+  const sub = h("div", "", head, "Designer gets $300 for on-time delivery."); css(sub, { fontSize: "42px", color: "#8a8a8a", marginTop: "18px", letterSpacing: "-0.03em" });
   const steps = graph.naive.violated.steps.map((s, i) => {
     const c = h("div", "card dark", el); css(c, { left: 120 + i * 570 + "px", top: "430px", width: "540px", height: "330px", padding: "34px" });
-    h("div", "", c, `<span style="display:inline-flex;width:40px;height:40px;border-radius:50%;background:#fff;color:#000;align-items:center;justify-content:center;font-size:22px;margin-right:14px">${i + 1}</span>`);
+    h("div", "", c, `<span style="display:inline-flex;width:40px;height:40px;border-radius:50%;background:#fff;color:#000;align-items:center;justify-content:center;font-size:22px">${i + 1}</span>`);
     const tx = h("div", "", c, s.narration.join(" ")); css(tx, { fontSize: "26px", lineHeight: "1.3", letterSpacing: "-0.02em", fontWeight: "500", marginTop: "16px", color: "#e8e8e8", height: "150px" });
     const bar = h("div", "", c); css(bar, { display: "flex", height: "12px", borderRadius: "6px", overflow: "hidden", background: "#2a2a2a", marginTop: "10px" });
-    const tot = 30000; [[s.held, "#0066f5"], [s.released, "#fff"], [s.refunded, "#6b6b6b"]].forEach(([v, col]) => { const b = h("div", "", bar); css(b, { width: (v / tot) * 100 + "%", background: col }); });
+    [[s.held, "#0066f5"], [s.released, "#fff"], [s.refunded, "#6b6b6b"]].forEach(([v, col]) => { const b = h("div", "", bar); css(b, { width: (v / 30000) * 100 + "%", background: col }); });
     const lg = h("div", "", c, `held $${s.held / 100} · designer $${s.released / 100} · client $${s.refunded / 100}`); css(lg, { marginTop: "14px", fontSize: "20px", color: "#8a8a8a", fontWeight: "500", letterSpacing: "-0.01em" });
     return c;
   });
-  const verdict = h("div", "", el, "The designer delivered on time, and got $100 of $300."); css(verdict, { position: "absolute", left: "120px", top: "830px", padding: "18px 30px", background: "#fff", color: "#000", fontSize: "48px", borderRadius: "14px" });
+  const verdict = h("div", "", el, "Delivered on time. Paid $100 of $300."); css(verdict, { position: "absolute", left: "120px", top: "820px", padding: "18px 30px", background: "#fff", color: "#000", fontSize: "56px", borderRadius: "14px" });
   return { head, big, steps, verdict };
-}, (t, c) => {
-  c.head.style.opacity = P(t, 46.1, 46.5);
-  const sh = t > T.counterHit && t < T.counterHit + 0.35 ? (noise(t * 60) - 0.5) * 22 : 0;
-  c.big.style.transform = `translateX(${sh}px)`; c.big.style.opacity = P(t, T.counterHit - 0.05, T.counterHit);
-  c.steps.forEach((e, i) => { const k = springIn(t, T.steps[i], 0.6); e.style.opacity = P(t, T.steps[i], T.steps[i] + 0.2); e.style.transform = `translateY(${(1 - k) * 60}px)`; });
-  const vk = P(t, T.badHit, T.badHit + 0.1); c.verdict.style.opacity = vk;
-  c.verdict.style.transform = `translateX(${t > T.badHit && t < T.badHit + 0.4 ? (noise(t * 50) - 0.5) * 30 : 0}px) scale(${1.15 - 0.15 * eo(P(t, T.badHit, T.badHit + 0.3))})`;
-  // the dot rides the counterexample: through the three steps
-  const seg = T.steps.map((a, i) => [a, 170 + i * 570 + 20]);
-  if (t >= T.steps[0]) { let x = seg[0][1]; for (let i = 1; i < seg.length; i++) x = lerp(x, seg[i][1], eio(P(t, seg[i][0] - 0.4, seg[i][0]))); setDot(x + 280, 452, 12, 1 - P(t, 53.4, 53.8)); }
-  else setDot(1720, 160, 12, P(t, 46.2, 46.6) * 0.0);
-  S.counter.el.style.opacity = 1 - P(t, 53.6, 54);
+}, (t, c, E, sc) => {
+  TAG = "Real output of Kept's verifier"; DARK = true;
+  c.head.style.opacity = P(t, sc.start, sc.start + 0.2);
+  c.big.style.transform = `translateX(${shake(t, E.hit, 0.4, 28)}px)`; c.big.style.opacity = P(t, E.hit - 0.05, E.hit);
+  c.steps.forEach((e, i) => { const k = springIn(t, E.steps[i], 0.5); e.style.opacity = P(t, E.steps[i], E.steps[i] + 0.15); e.style.transform = `translateY(${(1 - k) * 60}px)`; });
+  c.verdict.style.opacity = P(t, E.bad, E.bad + 0.08);
+  c.verdict.style.transform = `translateX(${shake(t, E.bad, 0.4, 30)}px) scale(${1.15 - 0.15 * eo(P(t, E.bad, E.bad + 0.3))})`;
+  if (t >= E.steps[0]) { let x = 140; for (let i = 1; i < 3; i++) x = lerp(x, 140 + i * 570, eio(P(t, E.steps[i] - 0.35, E.steps[i]))); setDot(x + 480, 452, 12, 1 - P(t, sc.end - 0.3, sc.end)); }
+  S.counter.el.style.opacity = 1 - P(t, sc.end - 0.25, sc.end);
 });
 
-// 6. PROVED: repair, re-prove (the real /verify page)
-scene("proved", (el) => {
+// 7. REPAIRED + PROVED + every way it can end
+scene("proved", (el, E) => {
   glow(el, "var(--canvas)", "rgba(0,102,245,.18)", "65% 55%");
   const sc = Screen(el);
-  const head = h("div", "", el); css(head, { position: "absolute", left: "110px", top: "150px", width: "620px", fontSize: "76px", lineHeight: "1.02" });
-  const w = words(head, "Repair the rules. | Never your promises.");
-  const ban = h("div", "", el); css(ban, { position: "absolute", left: "110px", top: "520px", width: "640px", padding: "30px 34px", borderRadius: "26px", background: "var(--blue)", color: "#fff", fontSize: "44px", lineHeight: "1.08" });
-  ban.innerHTML = `${graph.fixed.summary}`;
-  const sm = h("div", "", el); css(sm, { position: "absolute", left: "110px", top: "780px", fontSize: "24px", color: "#6b6b6b", fontWeight: "500", letterSpacing: "-0.01em" });
-  sm.textContent = "Runs in your browser on kept's public verify page.";
-  return { sc, w, ban };
-}, (t, c) => {
-  const k = eo(P(t, 54, 55.2));
-  c.sc.pose({ x: 300 + (1 - k) * 600, y: 30, s: 0.7, ry: -12 + 4 * k, rx: 3, o: P(t, 54, 54.4) });
-  const z = 1 + 0.5 * eio(P(t, 56.6, 58.2));
-  c.sc.set("s34_proved", null, 0, [720, 300, z]); c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0); c.sc.highlight(null, 0);
-  playWords(c.w, t, 55.2, 0.12);
-  const bk = springIn(t, T.provedHit, 0.6); c.ban.style.opacity = P(t, T.provedHit, T.provedHit + 0.15); c.ban.style.transform = `scale(${0.85 + 0.15 * bk})`;
-  if (t > T.provedHit) setDot(744, 540, 16, 1 - P(t, 62.4, 62.9));
-  S.proved.el.style.opacity = 1 - P(t, 62.6, 63);
+  const rules = h("div", "card", el); css(rules, { left: "100px", top: "150px", width: "780px", padding: "34px 40px 20px" });
+  h("div", "eyebrow", rules, "The rules, repaired");
+  const R1 = [["Pay the balance on delivery", "Pay the balance for an on-time delivery"], ["Refund if not delivered by the deadline", "Refund if nothing was submitted by the deadline"], [null, "Refund if the delivery is rejected"]].map(([a, b]) => {
+    const row = h("div", "", rules); css(row, { position: "relative", marginTop: "16px", height: a ? "84px" : "48px" });
+    const o = h("div", "", row, a ?? ""); css(o, { position: "absolute", fontSize: "28px", color: "#8a8a8a", letterSpacing: "-0.03em", whiteSpace: "nowrap" });
+    const strike = h("div", "", row); css(strike, { position: "absolute", left: 0, top: "18px", height: "3px", background: "var(--ink)" });
+    const n = h("div", "", row, `<span style="color:var(--blue)">+</span> ${b}`); css(n, { position: "absolute", top: a ? "38px" : "4px", fontSize: "30px", letterSpacing: "-0.03em", whiteSpace: "nowrap" });
+    return { o, strike, n, has: !!a };
+  });
+  const pr = h("div", "", el, `Your promises: <span style="color:#8a8a8a">unchanged.</span>`); css(pr, { position: "absolute", left: "100px", top: "560px", fontSize: "34px", letterSpacing: "-0.03em" });
+  const ban = h("div", "", el, graph.fixed.summary); css(ban, { position: "absolute", left: "100px", top: "650px", width: "780px", padding: "30px 34px", borderRadius: "26px", background: "var(--blue)", color: "#fff", fontSize: "50px", lineHeight: "1.06" });
+  const burst = Burst(el, "rgba(0,102,245,.12)");
+  const endCap = h("div", "cap", el); css(endCap, { top: "44px", fontSize: "60px" });
+  const ew = words(endCap, "Every way it can end, | before anyone *pays.*");
+  return { sc, rules, R1, pr, ban, burst, endCap, ew };
+}, (t, c, E, sc) => {
+  TAG = t < E.hit ? "Proof result is real · repair shown as illustration" : "Live app · public verify page";
+  const k = eo(P(t, sc.start, sc.start + 0.8)), end = eio(P(t, E.endings - 0.2, E.endings + 0.6));
+  c.sc.pose({ x: lerp(360 + (1 - k) * 600, 0, end), y: lerp(40, 60, end), s: lerp(0.6, 0.9, end), ry: lerp(-12 + 4 * k, 0, end), rx: 3, o: P(t, sc.start, sc.start + 0.3) });
+  c.sc.set("s34_proved", null, 0, [lerp(820, 830, end), lerp(200, 560, end), lerp(1 + 0.25 * eio(P(t, E.hit, E.hit + 1)), 1.45, end)]); c.sc.off();
+  c.R1.forEach((r, i) => { const a = E.repair + i * 0.35; r.strike.style.width = r.has ? eo(P(t, a, a + 0.3)) * r.o.offsetWidth + "px" : "0"; r.n.style.opacity = P(t, a + 0.25, a + 0.45); r.n.style.transform = `translateX(${(1 - eo(P(t, a + 0.25, a + 0.6))) * 30}px)`; });
+  const left = 1 - P(t, E.endings - 0.3, E.endings);
+  c.rules.style.opacity = P(t, sc.start + 0.1, sc.start + 0.35) * left;
+  c.pr.style.opacity = P(t, E.never, E.never + 0.2) * left;
+  c.ban.style.opacity = P(t, E.hit, E.hit + 0.12) * left; c.ban.style.transform = `scale(${0.85 + 0.15 * springIn(t, E.hit, 0.5)})`;
+  c.burst(t, E.hit, [480, 720], 1.6);
+  c.endCap.style.opacity = t > E.endings - 0.1 ? 1 : 0; voWords(c.ew, t, "v5");
+  if (t > E.hit && t < E.endings - 0.2) setDot(880, 700, 16, 1);
+  S.proved.el.style.opacity = 1 - P(t, sc.end - 0.25, sc.end);
 });
 
-// 7. HOLD IT: same fingerprint, then the money goes on hold with PayPal
-scene("hold", (el) => {
+// 8. HOLD IT
+scene("hold", (el, E) => {
   glow(el, "var(--canvas)", "rgba(0,102,245,.16)", "50% 50%");
   const fr = [190, 400, 640, 90];
   const ca = Crop(el, "s23_payer_review", fr, 1.6), cb = Crop(el, "s20_payee_review", fr, 1.6);
   const la = h("div", "eyebrow", el, "Maya · paying"), lb = h("div", "eyebrow", el, "Sam · getting paid");
-  const match = h("div", "", el, "Same terms. Same fingerprint."); css(match, { position: "absolute", left: "0", right: "0", top: "730px", textAlign: "center", fontSize: "56px" });
+  const read = h("div", "", el); css(read, { position: "absolute", left: "0", right: "0", top: "730px", textAlign: "center", fontFamily: "Mono", fontSize: "120px", letterSpacing: "0.04em", fontWeight: "600" });
+  const chars = [..."c276 b18a"].map((ch) => h("span", "", read, ch === " " ? "&nbsp;" : ch));
   const sc = Screen(el);
-  const vault = h("div", "card dark", el); css(vault, { left: "1440px", top: "330px", width: "380px", height: "420px", padding: "34px", textAlign: "center" });
-  vault.innerHTML = `<div class="eyebrow" style="color:#8a8a8a">PayPal hold</div><div style="font-size:84px;margin-top:40px">$300</div><div style="font-size:22px;color:#8a8a8a;margin-top:10px;font-weight:500;letter-spacing:-.01em">authorized · nothing captured yet</div>`;
+  const vault = h("div", "card dark", el); css(vault, { left: "1440px", top: "300px", width: "400px", height: "460px", padding: "34px", textAlign: "center" });
+  vault.innerHTML = `<div class="eyebrow" style="color:#8a8a8a">PayPal authorization</div><div style="font-size:92px;margin-top:40px">$307.50</div><div style="font-size:22px;color:#8a8a8a;margin-top:10px;font-weight:500;letter-spacing:-.01em">$300 + up to $7.50 fee · nothing captured yet</div>`;
   const lock = h("div", "", vault, `<svg width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><rect x="5" y="11" width="14" height="10" rx="2"/><path class="sh" d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`); css(lock, { marginTop: "30px" });
-  const cap = h("div", "", el); css(cap, { position: "absolute", left: "110px", top: "84px", fontSize: "60px" });
-  const w = words(cap, "Held by PayPal. | Not by a stranger. Not by us.");
-  return { ca, cb, la, lb, match, sc, vault, lock, w, cap };
-}, (t, c) => {
-  // fingerprints slide together
-  const a = eio(P(t, T.fpSlide, T.fpClick));
-  const out = P(t, 66.4, 67.0);
-  css(c.ca, { left: lerp(80, 448, a) + "px", top: lerp(250, 330, a) + "px", opacity: P(t, 63.2, 63.6) * (1 - out), transform: `rotate(${(1 - a) * -4}deg)` });
-  css(c.cb, { left: lerp(820, 448, a) + "px", top: lerp(560, 490, a) + "px", opacity: P(t, 63.4, 63.8) * (1 - out), transform: `rotate(${(1 - a) * 4}deg)` });
-  css(c.la, { position: "absolute", left: lerp(80, 448, a) + "px", top: lerp(215, 295, a) + "px", opacity: P(t, 63.2, 63.6) * (1 - out) });
-  css(c.lb, { position: "absolute", left: lerp(820, 1300, a) + "px", top: lerp(715, 645, a) + "px", opacity: P(t, 63.4, 63.8) * (1 - out) });
-  const ck = P(t, T.fpClick, T.fpClick + 0.5);
+  const cap = h("div", "", el); css(cap, { position: "absolute", left: "110px", top: "70px", fontSize: "64px" });
+  const w = words(cap, "Held by *PayPal.* | Not by a stranger. Not by us.");
+  const joke = h("div", "", el, "Honestly, we don't want to hold it."); css(joke, { position: "absolute", left: "1420px", top: "790px", width: "440px", textAlign: "center", fontSize: "26px", color: "#6b6b6b", fontWeight: "500", letterSpacing: "-0.02em" });
+  return { ca, cb, la, lb, read, chars, sc, vault, lock, cap, w, joke };
+}, (t, c, E, sc) => {
+  TAG = "Live app · PayPal simulator";
+  const a = eio(P(t, E.slide, E.click)), out = P(t, E.simIn - 0.3, E.simIn);
+  css(c.ca, { left: lerp(80, 448, a) + "px", top: lerp(240, 300, a) + "px", opacity: P(t, sc.start, sc.start + 0.3) * (1 - out), transform: `rotate(${(1 - a) * -4}deg)` });
+  css(c.cb, { left: lerp(820, 448, a) + "px", top: lerp(560, 460, a) + "px", opacity: P(t, sc.start + 0.1, sc.start + 0.4) * (1 - out), transform: `rotate(${(1 - a) * 4}deg)` });
+  css(c.la, { position: "absolute", left: lerp(80, 448, a) + "px", top: lerp(205, 265, a) + "px", opacity: P(t, sc.start, sc.start + 0.3) * (1 - out) });
+  css(c.lb, { position: "absolute", left: lerp(820, 1300, a) + "px", top: lerp(715, 615, a) + "px", opacity: P(t, sc.start + 0.1, sc.start + 0.4) * (1 - out) });
+  const ck = P(t, E.click, E.click + 0.5);
   c.ca.style.boxShadow = c.cb.style.boxShadow = ck > 0 ? `0 0 0 ${4 * (1 - ck) + 2}px var(--blue), 0 30px 80px -20px rgba(0,0,0,.3)` : "";
-  c.match.style.opacity = P(t, T.fpClick, T.fpClick + 0.3) * (1 - out);
-  // the PayPal simulator approve, then the live promise
-  const sIn = eo(P(t, T.simIn, T.simIn + 0.9));
-  const live = t >= T.live;
-  c.sc.pose({ x: -200, y: 60 + (1 - sIn) * 500, s: 0.74, rx: 8 * (1 - sIn) + 2, ry: 6, o: P(t, T.simIn, T.simIn + 0.3) });
-  const btn = R("s31_sim", "btn"), [bx, by] = ctr(btn);
-  c.sc.set(live ? "s32_live" : "s31_sim", null, 0, live ? [700, 400, 1.15] : [720, 400, 1]);
-  if (!live) cursorTo(c.sc, t, [1100, 700], [bx + 20, by + 6], T.simIn + 1.0, T.simClick - 0.1, T.simClick); else { c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0); }
-  c.sc.highlight(null, 0);
-  // vault + dot drop
-  c.vault.style.opacity = P(t, T.simIn + 0.6, T.simIn + 1.0); c.vault.style.transform = `translateY(${(1 - eo(P(t, T.simIn + 0.6, T.simIn + 1.2))) * 60}px)`;
-  const sh = c.lock.querySelector(".sh"); sh.style.transform = `translateY(${(1 - eo(P(t, T.holdDrop + 0.3, T.holdDrop + 0.45))) * -4}px)`;
-  playWords(c.w, t, VO.h2 + 0.2, 0.1); c.cap.style.opacity = 1;
-  if (t >= T.simClick && t < T.holdDrop + 0.5) { const k = eio(P(t, T.simClick + 0.1, T.holdDrop + 0.4)); setDot(lerp(760, 1630, k), lerp(640, 690, k) - Math.sin(Math.PI * k) * 300, 16 - 4 * k, 1); }
-  else if (t >= T.holdDrop + 0.5) setDot(1630, 690, 12 * (1 - P(t, 76.4, 76.9)), 1);
-  S.hold.el.style.opacity = 1 - P(t, 76.6, 77);
+  c.read.style.opacity = P(t, E.read - 0.1, E.read + 0.1) * (1 - out);
+  c.chars.forEach((s, i) => { const t0 = E.read + i * 0.1; s.style.color = t >= t0 ? "var(--blue)" : "#c8c8c8"; s.style.display = "inline-block"; s.style.transform = `translateY(${-14 * Math.sin(Math.PI * P(t, t0, t0 + 0.25))}px)`; });
+  const sIn = eo(P(t, E.simIn, E.simIn + 0.6)), live = t >= E.live;
+  c.sc.pose({ x: -230, y: 70 + (1 - sIn) * 500, s: 0.72, rx: 8 * (1 - sIn) + 2, ry: 6, o: P(t, E.simIn, E.simIn + 0.2) });
+  const [bx, by] = ctr(R("s31_sim", "btn"));
+  c.sc.set(live ? "s32_live" : "s31_sim", null, 0, live ? [520, 420, 1.3] : [720, 460, 1.25]);
+  if (!live) cursorTo(c.sc, t, [1100, 760], [bx + 20, by + 6], E.simIn + 0.25, E.simClick - 0.05, E.simClick); else c.sc.off();
+  c.vault.style.opacity = P(t, E.simIn + 0.4, E.simIn + 0.7); c.vault.style.transform = `translateY(${(1 - eo(P(t, E.simIn + 0.4, E.simIn + 1.0))) * 60}px)`;
+  c.lock.querySelector(".sh").style.transform = `translateY(${(1 - eo(P(t, E.drop + 0.3, E.drop + 0.45))) * -4}px)`;
+  c.cap.style.opacity = t > E.simIn ? 1 : 0;
+  c.w.ws.forEach((s, i) => { const t0 = i < 3 ? VO.h2.ph[0] + i * 0.12 : i < 7 ? E.stranger + (i - 3) * 0.1 : E.us + (i - 7) * 0.1; rise(s, P(t, t0, t0 + 0.3), 30); });
+  c.joke.style.opacity = P(t, E.joke, E.joke + 0.25);
+  if (t >= E.simClick && t < E.drop + 0.5) { const k = eio(P(t, E.simClick + 0.05, E.drop + 0.4)); setDot(lerp(700, 1640, k), lerp(640, 700, k) - Math.sin(Math.PI * k) * 320, 16 - 4 * k, 1); }
+  else if (t >= E.drop + 0.5) setDot(1640, 700, 12 * (1 - P(t, sc.end - 0.3, sc.end)), 1);
+  S.hold.el.style.opacity = 1 - P(t, sc.end - 0.2, sc.end);
 });
 
-// 8. KEEP IT: delivery, acceptance, settlement
-scene("keep", (el) => {
+// 9. HOW THE MONEY FLOWS
+scene("money", (el, E) => {
+  glow(el, "var(--canvas)", "rgba(0,102,245,.16)", "30% 50%");
+  const sc = Screen(el);
+  const box = h("div", "card dark", el); css(box, { left: "1080px", top: "200px", width: "740px", height: "640px", padding: "44px" });
+  h("div", "eyebrow", box, "Under the hood, on PayPal").style.color = "#8a8a8a";
+  const bar = h("div", "", box); css(bar, { position: "relative", marginTop: "70px", height: "64px", borderRadius: "16px", background: "#262626", overflow: "hidden" });
+  const segs = [["#fff", 102.5], ["#0066f5", 205]].map(([col, v]) => { const s = h("div", "", bar); css(s, { position: "absolute", top: 0, bottom: 0, background: col }); s.v = v; return s; });
+  const lab = h("div", "", box); css(lab, { marginTop: "26px", fontSize: "30px", letterSpacing: "-0.03em", lineHeight: "1.5" });
+  const lines = ["<b>$307.50</b> authorized up front", "<b>$102.50</b> captured, $100 paid to Sam", "<b>$205.00</b> captured, $200 paid to Sam", "Refund? The rest is voided, never taken."].map((s) => h("div", "", lab, s));
+  return { sc, box, bar, segs, lines };
+}, (t, c, E, sc) => {
+  TAG = "Live app · PayPal simulator";
+  const k = eo(P(t, sc.start, sc.start + 0.7));
+  c.sc.pose({ x: -380 + (1 - k) * -300, y: 30, s: 0.62, ry: 10, rx: 3, o: P(t, sc.start, sc.start + 0.25) });
+  const step = t < E.capture ? 0 : t < E.voidT ? 1 : 2;
+  c.sc.set("s24_payer_approved", null, 0, [[667, 440, 1.7], [667, 545, 1.7], [667, 628, 1.7]][step]); c.sc.off();
+  c.sc.highlight([[517, 396, 300, 90], [517, 496, 300, 95], [517, 594, 300, 65]][step], P(t, E.auth, E.auth + 0.3));
+  c.box.style.opacity = P(t, sc.start + 0.2, sc.start + 0.5); c.box.style.transform = `translateX(${(1 - eo(P(t, sc.start + 0.2, sc.start + 0.9))) * 120}px)`;
+  const W = 652; let x = 0;
+  c.segs.forEach((s, i) => { const a = E.capture + i * 0.7; css(s, { left: x + "px", width: (s.v / 307.5) * W * eo(P(t, a, a + 0.5)) + "px" }); x += (s.v / 307.5) * W; });
+  c.bar.style.boxShadow = `inset 0 0 0 ${t > E.auth ? 3 : 0}px #0066f5`;
+  c.lines.forEach((e, i) => { const a = [E.auth, E.capture, E.capture + 0.7, E.voidT][i]; e.style.opacity = P(t, a, a + 0.25); e.style.transform = `translateX(${(1 - eo(P(t, a, a + 0.4))) * 24}px)`; });
+  S.money.el.style.opacity = 1 - P(t, sc.end - 0.2, sc.end);
+});
+
+// 10. KEEP IT
+scene("keep", (el, E) => {
   glow(el, "var(--canvas)", "rgba(0,102,245,.16)", "50% 55%");
   const sc = Screen(el);
-  const who = h("div", "", el); css(who, { position: "absolute", left: "0", right: "0", top: "60px", textAlign: "center", fontSize: "26px", color: "#6b6b6b", fontWeight: "500", letterSpacing: "-0.01em" });
-  const cap = h("div", "", el); css(cap, { position: "absolute", left: "0", right: "0", top: "50px", textAlign: "center", fontSize: "60px" });
-  const w = words(cap, "$300 released, | exactly as proved.");
-  return { sc, who, w, cap };
-}, (t, c) => {
-  const k = eo(P(t, 77, 77.8));
-  c.sc.pose({ y: 40 + (1 - k) * 600, s: 0.86, rx: (1 - k) * 20 + 3, o: P(t, 77, 77.3) });
-  let n = "s40_deliver", cam = [500, 300, 1.45];
-  const fb = R("s40_deliver", "btn"), [fx, fy] = ctr(fb);
-  if (t < T.delivered) { n = t < 78.2 ? "s40_deliver" : "s41_chosen"; cursorTo(c.sc, t, [600, 150], [fx, fy], 77.8, 78.7, 78.75); }
-  else if (t < 80.4) { n = "s42_delivered"; cam = [900, 650, 1.35]; c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0); }
-  else if (t < T.settled) { n = "s43_review"; cam = [420, 200, 1.5]; const ab = R("s43_review", "btn"), [ax, ay] = ctr(ab); cursorTo(c.sc, t, [700, 500], [ax, ay], 80.6, T.acceptClick - 0.05, T.acceptClick); }
-  else { n = "s44_settled"; const z = 1 + 0.45 * eio(P(t, T.certZoom, T.certZoom + 1.4)); cam = [600 - 80 * eio(P(t, T.certZoom, T.certZoom + 1.4)), 330, z]; c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0); }
-  c.sc.set(n, null, 0, cam); c.sc.highlight(null, 0);
-  c.who.textContent = t < 80.4 ? "Sam, the designer, delivers" : t < T.settled ? "Maya reviews and accepts" : "";
-  c.who.style.opacity = t < T.settled ? P(t, 77.4, 77.8) : 0;
-  playWords(c.w, t, VO.k2 + 0.1, 0.1); c.cap.style.opacity = t > T.settled ? 1 : 0;
-  if (t > T.payout && t < 87) { const kk = eio(P(t, T.payout, T.payout + 0.8)); setDot(lerp(960, 610, kk), lerp(820, 530, kk), 14 + Math.sin(t * 8) * 2, P(t, T.payout, T.payout + 0.1) * (1 - P(t, 86, 86.4))); }
-  S.keep.el.style.opacity = 1 - P(t, 90.6, 91);
+  const who = h("div", "cap", el); css(who, { top: "52px", fontSize: "30px", color: "#6b6b6b", fontWeight: "500", letterSpacing: "-0.02em" });
+  const cap = h("div", "cap", el); css(cap, { top: "44px", fontSize: "64px" });
+  const w = words(cap, "$300 released, | exactly as *proved.*");
+  const phone = h("div", "phone", el); css(phone, { left: "1340px", top: "110px" });
+  const pTime = h("div", "", phone, "9:41"); css(pTime, { position: "absolute", left: 0, right: 0, top: "70px", textAlign: "center", color: "#fff", fontSize: "110px", letterSpacing: "-0.05em", fontWeight: "500" });
+  const toasts = [["$200.00 sent to your PayPal", "Logo design · milestone payment"], ["$100.00 sent to your PayPal", "Logo design · upfront payment"], ["Contract settled", "Promise kept. Receipts are signed."]].map(([a, b], i) => { const e = Toast(phone, a, b, i === 2 ? "✓" : "$"); css(e, { left: "18px", width: "434px", top: 280 + i * 132 + "px", padding: "18px 20px" }); e.querySelector(".t1").style.fontSize = "23px"; return e; });
+  const fee = shoutEl(el, "Kept fee: $7.50 · only when money is released", 160, 900, true); css(fee, { fontSize: "36px", textTransform: "none" });
+  return { sc, who, cap, w, phone, toasts, fee };
+}, (t, c, E, sc) => {
+  TAG = "Live app · PayPal simulator";
+  const k = eo(P(t, sc.start, sc.start + 0.6)), ph = eo(P(t, E.phone - 0.2, E.phone + 0.4));
+  c.sc.pose({ y: 40 + (1 - k) * 600, s: lerp(0.88, 0.7, ph), x: lerp(0, -300, ph), rx: (1 - k) * 20 + 3, ry: 6 * ph, o: P(t, sc.start, sc.start + 0.2) });
+  let n, cam;
+  const [fx, fy] = ctr(R("s40_deliver", "btn")), [ax, ay] = ctr(R("s43_review", "btn"));
+  if (t < E.delivered) { n = t < E.deliverClick - 0.3 ? "s40_deliver" : "s41_chosen"; cam = [460, 280, 1.9]; cursorTo(c.sc, t, [700, 120], [fx, fy], sc.start + 0.15, E.deliverClick - 0.05, E.deliverClick); }
+  else if (t < E.acceptClick - 0.55) { n = "s42_delivered"; cam = [900, 660, 1.6]; c.sc.off(); }
+  else if (t < E.settled) { n = "s43_review"; cam = [380, 210, 2.0]; cursorTo(c.sc, t, [700, 420], [ax, ay], E.acceptClick - 0.5, E.acceptClick - 0.05, E.acceptClick); }
+  else { n = "s44_settled"; const zz = eio(P(t, E.settled, E.settled + 1.0)); cam = [lerp(520, 470, zz), lerp(420, 440, zz), 1 + 0.6 * zz]; c.sc.off(); }
+  c.sc.set(n, null, 0, cam);
+  c.who.textContent = t < E.acceptClick - 0.55 ? "Sam, the designer, delivers" : t < E.settled ? "Maya reviews and accepts" : "";
+  c.who.style.opacity = t < E.settled ? 1 : 0;
+  c.cap.style.opacity = t > E.settled ? 1 - P(t, E.phone - 0.1, E.phone + 0.2) : 0; playWords(c.w, t, E.settled, 0.08);
+  css(c.phone, { opacity: ph, transform: `translateY(${(1 - ph) * 500}px) rotate(${(1 - ph) * 8}deg)` });
+  c.toasts.forEach((e, i) => { const kk = springIn(t, E.toasts[i], 0.45); e.style.opacity = P(t, E.toasts[i], E.toasts[i] + 0.1); e.style.transform = `translateY(${(1 - kk) * -40}px) scale(${0.9 + 0.1 * kk})`; });
+  shoutAt(c.fee, t, E.fee, sc.end);
+  if (t > E.settled && t < E.phone) { const kk = eio(P(t, E.settled, E.settled + 0.7)); setDot(lerp(960, 640, kk), lerp(900, 560, kk), 14, 1); }
+  else if (t >= E.phone && t < E.toasts[0] + 0.1) { const kk = eio(P(t, E.phone, E.toasts[0])); setDot(lerp(640, 1575, kk), lerp(560, 420, kk) - Math.sin(Math.PI * kk) * 200, 14, 1); }
+  S.keep.el.style.opacity = 1 - P(t, sc.end - 0.2, sc.end);
 });
 
-// 9. TRY TO CHEAT: the real money-trail tamper test
-scene("cheat", (el) => {
+// 11. PLUMBER EXAMPLE
+scene("plumber", (el, E) => {
+  glow(el, "var(--canvas)", "rgba(0,102,245,.16)", "50% 50%");
+  const sc = Screen(el);
+  const head = h("div", "", el); css(head, { position: "absolute", left: "110px", top: "80px", fontSize: "72px" });
+  const hw = words(head, "Same engine. | Different job.");
+  const cards = [["$40", "when the plumber checks in on site, within 48 hours"], ["$140", "when the photo of the fixed sink is accepted, within 72 hours"], ["$180 back", "if nobody shows up. Every cent."]].map(([a, b], i) => {
+    const c = h("div", "card" + (i === 2 ? " dark" : ""), el); css(c, { left: "1080px", top: 240 + i * 210 + "px", width: "720px", padding: "30px 36px" });
+    c.innerHTML = `<div style="font-size:64px;${i < 2 ? "color:var(--blue)" : ""}">${a}</div><div style="font-size:26px;font-weight:500;letter-spacing:-.02em;color:${i === 2 ? "#bbb" : "#6b6b6b"};margin-top:6px">${b}</div>`;
+    return c;
+  });
+  return { sc, hw, cards };
+}, (t, c, E, sc) => {
+  TAG = "Live app · proved template";
+  const k = eo(P(t, sc.start, sc.start + 0.6));
+  c.sc.pose({ x: -360, y: 60 + (1 - k) * 400, s: 0.66, ry: 10, rx: 3, o: P(t, sc.start, sc.start + 0.25) });
+  const card = R("x40_plumber", "card");
+  c.sc.set("x40_plumber", null, 0, [card[0] + 140, card[1] + 70, 1 + 1.0 * eio(P(t, sc.start + 0.3, E.fee40))]); c.sc.off();
+  c.sc.highlight(card, P(t, sc.start + 0.5, sc.start + 0.8));
+  spanWords(c.hw, t, VO.x1.start, VO.x1.ph[2]);
+  [E.fee40, E.rest, E.noshow].forEach((a, i) => pop(c.cards[i], t, a, 0.85));
+  if (t > E.home) { const kk = eio(P(t, E.home, E.home + 0.6)); setDot(lerp(1440, 1100, kk), lerp(700, 600, kk), 16, 1 - P(t, sc.end - 0.3, sc.end)); }
+  S.plumber.el.style.opacity = 1 - P(t, sc.end - 0.2, sc.end);
+});
+
+// 12. RECEIPTS
+scene("receipts", (el, E) => {
+  glow(el, "var(--canvas)", "rgba(0,102,245,.16)", "50% 50%");
+  const sc = Screen(el);
+  const cap = h("div", "cap", el); css(cap, { top: "44px", fontSize: "60px" });
+  const w = words(cap, "Every step *signed.* | Every link chained.");
+  const sh = shoutEl(el, "No account. No trust required.", 540, 900, true);
+  return { sc, w, sh };
+}, (t, c, E, sc) => {
+  TAG = "Live app · PayPal simulator";
+  const k = eo(P(t, sc.start, sc.start + 0.6));
+  c.sc.pose({ y: 50 + (1 - k) * 500, s: 0.86, rx: (1 - k) * 20 + 3, o: P(t, sc.start, sc.start + 0.2) });
+  c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0);
+  if (t < E.browser) { c.sc.set("s45_scroll0", null, 0, [1080, lerp(240, 480, eio(P(t, sc.start + 0.3, E.browser))), 1.75]); c.sc.highlight(null, 0); }
+  else { c.sc.set("s51a_grid", null, 0, [720, 270, 1 + 0.6 * eio(P(t, E.browser, E.browser + 0.7))]); c.sc.highlight([188, 243, 1064, 72], P(t, E.browser + 0.5, E.browser + 0.8)); }
+  playWords(c.w, t, E.chain, 0.08);
+  shoutAt(c.sh, t, E.noacct, sc.end + 1);
+  S.receipts.el.style.opacity = 1 - P(t, sc.end - 0.2, sc.end);
+});
+
+// 13. TRY TO CHEAT
+scene("cheat", (el, E) => {
   el.style.background = "#000";
-  const ttl = h("div", "", el, "Try to cheat."); css(ttl, { position: "absolute", left: "0", right: "0", top: "420px", textAlign: "center", color: "#fff", fontSize: "200px" });
+  const burst = Burst(el, "rgba(255,255,255,.12)");
+  const pre = h("div", "cap", el, "Now, the fun part."); css(pre, { top: "470px", color: "#8a8a8a", fontSize: "70px" });
+  const ttl = h("div", "cap", el, "Let's cheat."); css(ttl, { top: "400px", color: "#fff", fontSize: "230px" });
   const bg = h("div", "layer", el); bg.style.background = "var(--canvas)";
   const sc = Screen(el);
   const slices = [0, 1, 2, 3].map(() => { const d = h("div", "", sc.el); css(d, { position: "absolute", left: 0, right: 0, background: "#fff", mixBlendMode: "difference", zIndex: 9 }); return d; });
-  const cap = h("div", "", el); css(cap, { position: "absolute", left: "0", right: "0", top: "50px", textAlign: "center", fontSize: "56px" });
-  const w1 = words(cap, "$200 → $2,000. | Broken.");
-  const cap2 = h("div", "", el); css(cap2, { position: "absolute", left: "0", right: "0", top: "50px", textAlign: "center", fontSize: "56px" });
-  const w2 = words(cap2, "Cover your tracks. | Still broken.");
-  const notUs = h("div", "", el); css(notUs, { position: "absolute", inset: "0", background: "rgba(0,0,0,.86)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "130px", textAlign: "center", lineHeight: "1" });
+  const s1 = shoutEl(el, "$200 → $2,000. Broken.", 560, 60), s2 = shoutEl(el, "Re-hashed. Still broken.", 590, 60);
+  const notUs = h("div", "", el); css(notUs, { position: "absolute", inset: "0", background: "rgba(0,0,0,.86)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "140px", textAlign: "center", lineHeight: "1" });
   const w3 = words(notUs, "Not even we | can rewrite it.");
-  return { ttl, bg, sc, slices, cap, w1, cap2, w2, notUs, w3 };
-}, (t, c) => {
-  const tk = P(t, T.cheatTitle, T.cheatTitle + 0.15) * (1 - P(t, 92.6, 93));
-  c.ttl.style.opacity = tk; c.ttl.style.transform = `translateX(${t < T.cheatTitle + 0.4 ? (noise(t * 70) - 0.5) * 40 : 0}px) scale(${1.1 - 0.1 * eo(P(t, T.cheatTitle, 92.4))})`;
-  c.bg.style.opacity = P(t, 92.8, 93.2);
-  const k = eo(P(t, T.gridIn, T.gridIn + 0.9));
-  c.sc.pose({ y: 60 + (1 - k) * 600, s: 0.9, rx: (1 - k) * 25 + 3, o: P(t, T.gridIn, T.gridIn + 0.3) });
-  const cell = [703, 671, 150, 38], [cx, cy] = ctr(cell);
-  const cb = R("s50b_pre", "cb");
+  return { burst, pre, ttl, bg, sc, slices, s1, s2, notUs, w3 };
+}, (t, c, E, sc) => {
+  TAG = t < E.gridIn || t > E.notUs ? null : "Live app · PayPal simulator";
+  DARK = t < E.gridIn || t > E.notUs;
+  c.pre.style.opacity = P(t, sc.start, sc.start + 0.2) * (1 - P(t, E.title - 0.15, E.title));
+  c.ttl.style.opacity = P(t, E.title, E.title + 0.08) * (1 - P(t, E.gridIn - 0.2, E.gridIn)); c.ttl.style.transform = `translateX(${shake(t, E.title, 0.4, 40)}px) scale(${1.1 - 0.1 * eo(P(t, E.title, E.title + 0.5))})`;
+  c.burst(t, E.title, [960, 520], E.gridIn - E.title + 0.2);
+  c.bg.style.opacity = P(t, E.gridIn - 0.2, E.gridIn);
+  const k = eo(P(t, E.gridIn, E.gridIn + 0.5));
+  c.sc.pose({ y: 50 + (1 - k) * 600, s: 0.92, rx: (1 - k) * 25 + 3, o: P(t, E.gridIn, E.gridIn + 0.15) });
+  const cell = [703, 671, 150, 38], [cx, cy] = ctr(cell), cb = R("s50b_pre", "cb");
   let n, cam;
-  if (t < T.cellClick + 0.12) { n = "s51a_grid"; cam = [720, 360, 1 + 0.25 * eio(P(t, 93.6, 94.4))]; cursorTo(c.sc, t, [1100, 200], [760, 640], 93.8, 94.55, 0); }
-  else if (t < T.broken) { n = "s52a_typing"; cam = [cx - 100, cy - 140, 1.4 - 0.15 * (1 - eo(P(t, T.cellClick + 0.12, T.typing)))]; c.sc.cursor(cx + 70, cy + 10, true); c.sc.ripple(cx, cy, P(t, T.cellClick + 0.12, T.cellClick + 0.55)); }
-  else if (t < 99.2) { n = "s53a_broken"; const e = eio(P(t, T.broken + 0.6, T.broken + 1.6)); cam = [lerp(cx - 100, 720, e), lerp(cy - 140, 420, e), 1.4 - 0.25 * e]; c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0); }
-  else if (t < T.broken2) { const pre = t < T.coverClick + 0.1; n = pre ? "s50b_pre" : "s52b_typing"; cam = [600, 260, 1.3]; const [bx, by] = [cb[0] + 10, cb[1] + 10]; if (pre) cursorTo(c.sc, t, [1000, 600], [bx, by], 99.5, T.coverClick - 0.05, T.coverClick); else { c.sc.cursor(cx + 70, cy + 10, true); c.sc.ripple(bx, by, P(t, T.coverClick, T.coverClick + 0.45)); cam = [cx - 100, lerp(260, cy - 140, eio(P(t, 101.0, 101.8))), 1.3]; } }
-  else { n = "s53b_broken"; cam = [1000, lerp(cy - 100, 520, eio(P(t, T.broken2 + 0.6, T.broken2 + 1.6))), 1.35 - 0.1 * eio(P(t, T.broken2 + 0.6, T.broken2 + 1.6))]; c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0); }
-  c.sc.set(n, null, 0, cam); c.sc.highlight(null, 0);
-  // glitch slices on each break
-  const g = (t > T.broken && t < T.broken + 0.45) || (t > T.broken2 && t < T.broken2 + 0.45);
+  if (t < E.click + 0.12) { n = "s51a_grid"; cam = [720, 360, 1 + 0.25 * eio(P(t, E.gridIn + 0.2, E.click))]; cursorTo(c.sc, t, [1100, 200], [760, 640], E.gridIn + 0.15, E.click - 0.05, 0); }
+  else if (t < E.broken) { n = "s52a_typing"; cam = [cx - 60, cy - 120, 2.0]; c.sc.cursor(cx + 70, cy + 10, true); c.sc.ripple(cx, cy, P(t, E.click + 0.12, E.click + 0.55)); }
+  else if (t < E.cover - 0.6) { n = "s53a_broken"; const e = eio(P(t, E.broken + 0.3, E.broken + 1.0)); cam = [lerp(cx - 60, 720, e), lerp(cy - 120, 420, e), lerp(2.0, 1.15, e)]; c.sc.off(); }
+  else if (t < E.broken2) { const pre = t < E.cover + 0.1; n = pre ? "s50b_pre" : "s52b_typing"; const [bx, by] = [cb[0] + 10, cb[1] + 10]; if (pre) { cam = [600, 260, 1.5]; cursorTo(c.sc, t, [1000, 600], [bx, by], E.cover - 0.55, E.cover - 0.05, E.cover); } else { c.sc.cursor(cx + 70, cy + 10, true); c.sc.ripple(bx, by, P(t, E.cover, E.cover + 0.45)); const e = eio(P(t, E.cover + 0.2, E.broken2 - 0.1)); cam = [cx - 60, lerp(260, cy - 120, e), lerp(1.5, 2.0, e)]; } }
+  else { n = "s53b_broken"; const e = eio(P(t, E.truth - 0.2, E.truth + 0.5)); cam = [lerp(cx - 60, 1150, e), lerp(cy - 120, 700, e), lerp(2.0, 2.2, e)]; c.sc.off(); }
+  c.sc.set(n, null, 0, cam);
+  if (n === "s53b_broken") c.sc.highlight([1150, 670, 150, 76], P(t, E.truth + 0.3, E.truth + 0.6)); else if (n !== "s50b_pre" && n !== "s52b_typing" && n !== "s51a_grid" && n !== "s52a_typing") c.sc.highlight(null, 0); else c.sc.highlight(null, 0);
+  const g = (t > E.broken && t < E.broken + 0.45) || (t > E.broken2 && t < E.broken2 + 0.45);
   c.slices.forEach((s, i) => { const r = noise(Math.floor(t * 24) + i * 7.3); css(s, { display: g ? "block" : "none", top: r * 760 + "px", height: 6 + noise(i + Math.floor(t * 30)) * 40 + "px", opacity: 0.9 }); });
-  const whip = P(t, T.cellClick, T.cellClick + 0.12) * (1 - P(t, T.cellClick + 0.12, T.cellClick + 0.3));
+  const whip = P(t, E.click, E.click + 0.12) * (1 - P(t, E.click + 0.12, E.click + 0.3));
   c.sc.el.style.filter = g ? `contrast(1.4) brightness(${0.9 + noise(t * 40) * 0.3})` : whip > 0 ? `blur(${whip * 14}px)` : "";
-  playWords(c.w1, t, VO.c2, 0.12); c.cap.style.opacity = t > VO.c2 - 0.1 && t < 99.4 ? 1 : 0;
-  playWords(c.w2, t, VO.c3, 0.12); c.cap2.style.opacity = t > VO.c3 - 0.1 && t < T.notUs ? 1 : 0;
-  c.notUs.style.opacity = P(t, T.notUs, T.notUs + 0.25) * (1 - P(t, 110.4, 110.9)); playWords(c.w3, t, T.notUs + 0.1, 0.1);
-  S.cheat.el.style.opacity = 1 - P(t, 110.6, 111);
+  shoutAt(c.s1, t, E.broken, E.cover - 0.4); shoutAt(c.s2, t, E.broken2, E.notUs);
+  c.notUs.style.opacity = P(t, E.notUs, E.notUs + 0.2) * (1 - P(t, sc.end - 0.25, sc.end)); playWords(c.w3, t, E.notUs + 0.05, 0.08);
+  S.cheat.el.style.opacity = 1 - P(t, sc.end - 0.2, sc.end);
 });
 
-// 10. AGENTS: real API answers, then the real console
-scene("agents", (el) => {
+// 14. LINK CHECK
+scene("link", (el, E) => {
+  glow(el, "var(--canvas)", "rgba(0,102,245,.16)", "50% 50%");
+  const sc = Screen(el);
+  const sh = shoutEl(el, "Look-alike? Caught.", 680, 900);
+  return { sc, sh };
+}, (t, c, E, sc) => {
+  TAG = "Live app · public verify page";
+  const k = eo(P(t, sc.start, sc.start + 0.6));
+  c.sc.pose({ y: 30 + (1 - k) * 500, s: 0.9, rx: (1 - k) * 20 + 3, o: P(t, sc.start, sc.start + 0.2) });
+  const inp = R("x11_link_typed", "inp"), [bx, by] = ctr(R("x11_link_typed", "btn"));
+  if (t < E.type) { c.sc.set("x10_link", null, 0, [760, 545, 1.6]); c.sc.off(); }
+  else if (t < E.click + 0.1) { c.sc.set("x10_link", "x11_link_typed", P(t, E.type, E.type + 0.5), [760, 545, 1.6]); cursorTo(c.sc, t, [900, 700], [bx, by], E.type + 0.3, E.click - 0.05, E.click); c.sc.highlight(inp, 1); }
+  else { const zz = eio(P(t, E.result, E.result + 0.6)); c.sc.set("x12_link_result", null, 0, [lerp(760, 800, zz), lerp(545, 640, zz), lerp(1.6, 1.7, zz)]); c.sc.off(); c.sc.highlight([392, 621, 872, 108], P(t, E.result + 0.4, E.result + 0.7)); }
+  shoutAt(c.sh, t, E.result + 0.3, sc.end + 1);
+  S.link.el.style.opacity = 1 - P(t, sc.end - 0.2, sc.end);
+});
+
+// 15. AGENTS
+scene("agents", (el, E) => {
   glow(el, "#0a0a0a", "rgba(0,102,245,.22)", "50% 70%");
-  const t1 = h("div", "", el); css(t1, { position: "absolute", left: "0", right: "0", top: "380px", textAlign: "center", color: "#fff", fontSize: "110px", lineHeight: "1" });
-  const w = words(t1, "Give an agent a budget, | not your card.");
+  const hook = h("div", "cap", el); css(hook, { top: "330px", color: "#fff", fontSize: "96px", lineHeight: "1.04" });
+  const hw1 = words(hook, "AI agents are about to spend *real money.*"), hw2 = words(hook, "| Someone has to make sure they spend it the way we meant.");
+  hw2.style.fontSize = "56px"; hw2.style.marginTop = "30px";
+  const t1 = h("div", "cap", el); css(t1, { top: "300px", color: "#fff", fontSize: "116px", lineHeight: "1" });
+  const w = words(t1, "Give an agent a *budget,* | not your card.");
+  const card = h("div", "", el); css(card, { position: "absolute", left: "760px", top: "560px", width: "400px", height: "250px", borderRadius: "24px", background: "linear-gradient(135deg,#2a2a2a,#111)", boxShadow: "0 30px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.1)" });
+  card.innerHTML = `<div style="position:absolute;left:30px;top:30px;width:60px;height:44px;border-radius:8px;background:#bbb"></div><div style="position:absolute;left:30px;bottom:30px;color:#bbb;font-family:Mono;font-size:28px;letter-spacing:.08em">•••• •••• •••• 4242</div>`;
   const term = h("div", "term", el);
-  const hdr = h("div", "", term, `<span style="color:#6b6b6b">agent → POST /agent/v1/spends · Office supplies budget · $200, max $50 each, ask above $30</span>`); css(hdr, { fontSize: "19px", marginBottom: "28px" });
-  const LABEL = { executing: ["Paid", "b-paid"], needs_approval: ["Asks you", "b-ask"], denied: ["Denied", "b-deny"] };
-  const rows = calls.map((cl) => {
+  h("div", "", term, `<span style="color:#6b6b6b">agent → POST /agent/v1/spends · Office supplies budget · $200, max $50 each, ask above $30</span>`).style.cssText = "font-size:19px;margin-bottom:26px";
+  const LABEL = { executing: ["Paid", "b-paid"], needs_approval: ["Asks you first", "b-ask"], denied: ["Denied", "b-deny"] };
+  const rows = calls.map((cl0) => {
     const r = h("div", "row", term);
-    const req = h("div", "req", r, `$ spend <em>${cl.req.amountCents / 100 >= 10 ? "$" + (cl.req.amountCents / 100).toFixed(2) : ""}</em> · ${cl.req.description} · ${cl.req.merchantEmail}` + (cl.k === "fake" ? ` · token <em>mt_fake…</em>` : ""));
-    const res = h("div", "res", r, cl.status === 401 ? `401 ${cl.res.error.code} · ${cl.res.error.message}` : `${cl.status} ${cl.res.status} · ${cl.res.reasons.join("; ")}`);
-    const [lab, cls] = cl.status === 401 ? ["Refused · 401", "b-deny"] : LABEL[cl.res.status];
-    const b = h("div", "badge " + cls, r, lab);
-    r.req = req; r.res = res; r.b = b; return r;
+    r.req = h("div", "req", r, `$ spend <em>$${(cl0.req.amountCents / 100).toFixed(2)}</em> · ${cl0.req.description} · ${cl0.req.merchantEmail}` + (cl0.k === "fake" ? ` · token <em>mt_fake…</em>` : ""));
+    r.res = h("div", "res", r, cl0.status === 401 ? `401 ${cl0.res.error.code} · ${cl0.res.error.message}` : `${cl0.status} ${cl0.res.status} · ${cl0.res.reasons.join("; ")}`);
+    const [lab, cls] = cl0.status === 401 ? ["Not today · 401", "b-deny"] : LABEL[cl0.res.status];
+    r.b = h("div", "badge " + cls, r, lab); return r;
   });
-  const lab = h("div", "eyebrow", el, "Real responses from Kept's agent API (local deployment, PayPal simulator)"); css(lab, { position: "absolute", left: "260px", top: "890px", color: "#6b6b6b" });
+  const robot = h("div", "", el, "Nice try, robot."); css(robot, { position: "absolute", left: "1330px", top: "520px", padding: "12px 22px", borderRadius: "999px", background: "#fff", color: "#000", fontSize: "32px" });
+  const lab = h("div", "eyebrow", el, "Real responses from Kept's agent API (local deployment, PayPal simulator)"); css(lab, { position: "absolute", left: "230px", top: "900px", color: "#6b6b6b" });
   const bg = h("div", "layer", el); bg.style.background = "var(--canvas)";
   const sc = Screen(el);
-  const cap = h("div", "", el); css(cap, { position: "absolute", left: "0", right: "0", top: "50px", textAlign: "center", fontSize: "56px" });
-  const w2 = words(cap, "Close it. | Every unused dollar comes home.");
-  return { t1, w, term, rows, sc, bg, lab, cap, w2 };
-}, (t, c) => {
-  playWords(c.w, t, VO.a1, 0.1); c.t1.style.opacity = 1 - P(t, T.terminal - 0.6, T.terminal - 0.2);
-  c.t1.style.transform = `translateY(${-eio(P(t, T.terminal - 0.6, T.terminal)) * 80}px)`;
-  const tk = eo(P(t, T.terminal, T.terminal + 0.8)), off = P(t, T.console - 0.4, T.console);
-  c.term.style.opacity = P(t, T.terminal, T.terminal + 0.3) * (1 - off); c.term.style.transform = `translateY(${(1 - tk) * 120}px) rotateX(${(1 - tk) * 20}deg)`;
+  const s1 = shoutEl(el, "2 would have been blocked", 600, 70, true);
+  const cap = h("div", "cap", el); css(cap, { top: "50px", fontSize: "60px" });
+  const w2 = words(cap, "Close it. | Every unused dollar comes *home.*");
+  return { hook, hw1, hw2, t1, w, card, term, rows, robot, lab, bg, sc, s1, cap, w2 };
+}, (t, c, E, sc) => {
+  const termOn = t >= E.terminal, s0 = (E.feed ?? E.backtest) - 0.25, scr = t >= s0;
+  DARK = !scr;
+  TAG = !termOn ? null : !scr ? "Real API responses · PayPal simulator" : "Live app · PayPal simulator";
+  voWords(c.hw1, t, "n1"); spanWords(c.hw2, t, VO.n1.ph[1], VO.n1.end);
+  c.hook.style.opacity = 1 - P(t, E.title - 0.3, E.title - 0.05);
+  voWords(c.w, t, "a1"); c.t1.style.opacity = t >= E.title - 0.1 ? 1 - P(t, E.terminal - 0.3, E.terminal - 0.05) : 0;
+  const ck = eo(P(t, E.title + 0.2, E.title + 0.6)), away = eio(P(t, VO.a1.ph[1], VO.a1.ph[1] + 0.45));
+  css(c.card, { opacity: (t >= E.title ? ck : 0) * (1 - P(t, E.terminal - 0.3, E.terminal)), transform: `translate(${away * 1100}px, ${(1 - ck) * 200 - away * 120}px) rotate(${-8 + 8 * ck + away * 35}deg)` });
+  const tk = eo(P(t, E.terminal, E.terminal + 0.5));
+  c.term.style.opacity = P(t, E.terminal, E.terminal + 0.2) * (scr ? 0 : 1); c.term.style.transform = `translateY(${(1 - tk) * 120}px) rotateX(${(1 - tk) * 20}deg)`;
   c.lab.style.opacity = c.term.style.opacity;
-  c.rows.forEach((r, i) => { const a = T.calls[i]; const typed = P(t, a, a + 0.4); r.req.style.opacity = P(t, a - 0.05, a); r.req.style.clipPath = `inset(0 ${100 - typed * 100}% 0 0)`; r.res.style.opacity = P(t, a + 0.45, a + 0.6); const bk = springIn(t, a + 0.45, 0.5); r.b.style.opacity = P(t, a + 0.45, a + 0.55); r.b.style.transform = `scale(${0.5 + 0.5 * bk})`; });
-  // console: live feed -> closed -> backtest
-  c.bg.style.opacity = P(t, T.console - 0.2, T.console + 0.2);
-  const k = eo(P(t, T.console, T.console + 0.8));
-  c.sc.pose({ y: 50 + (1 - k) * 500, s: 0.88, rx: (1 - k) * 20 + 3, o: P(t, T.console, T.console + 0.3) });
+  c.rows.forEach((r, i) => { const [a, b] = E.calls[i]; r.req.style.opacity = P(t, a - 0.15, a - 0.05); r.req.style.clipPath = `inset(0 ${100 - P(t, a - 0.1, a + 0.3) * 100}% 0 0)`; r.res.style.opacity = P(t, b - 0.1, b + 0.05); r.b.style.opacity = P(t, b - 0.05, b + 0.05); r.b.style.transform = `scale(${0.5 + 0.5 * springIn(t, b - 0.05, 0.45)})`; });
+  c.robot.style.opacity = P(t, E.robot, E.robot + 0.1) * (scr ? 0 : 1); c.robot.style.transform = `rotate(-4deg) scale(${0.6 + 0.4 * springIn(t, E.robot, 0.4)})`;
+  c.bg.style.opacity = scr ? 1 : 0;
+  const k = eo(P(t, s0, s0 + 0.5));
+  c.sc.pose({ y: 50 + (1 - k) * 500, s: 0.9, rx: (1 - k) * 20 + 3, o: scr ? 1 : 0 });
   let n, cam;
-  if (t < T.closed) { n = "s62_approved"; cam = [400, 330, 1.25]; }
-  else if (t < T.backtest) { n = "s74_closed"; cam = [330, 300, 1 + 0.6 * eio(P(t, T.closed, T.closed + 1.2))]; }
-  else { n = "s71_bt20"; cam = [480, 220, 1.35]; }
-  c.sc.set(n, null, 0, cam); c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0); c.sc.highlight(null, 0);
-  playWords(c.w2, t, VO.a3, 0.1); c.cap.style.opacity = t > VO.a3 - 0.1 ? 1 - P(t, T.backtest + 1.6, T.backtest + 2) : 0;
-  if (t > T.closed + 0.3 && t < T.backtest) { const kk = eio(P(t, T.closed + 0.3, T.closed + 1.4)); setDot(lerp(700, 1500, kk), lerp(420, 980, kk) - Math.sin(Math.PI * kk) * 200, 14, 1 - P(t, T.closed + 1.3, T.closed + 1.6)); }
-  S.agents.el.style.opacity = 1 - P(t, 132.7, 133);
+  if (E.feed && t < E.backtest) { n = "s62_approved"; cam = [500, lerp(120, 230, eio(P(t, E.feed, E.backtest))), 1.8]; c.sc.off(); c.sc.highlight([[180, 157, 290, 24], [180, 275, 240, 24]][t < VO.g1.ph[1] ? 0 : 1], P(t, E.feed + 0.3, E.feed + 0.6)); }
+  else if (t < E.closed) {
+    const in20 = t >= E.bt20; n = in20 ? "s71_bt20" : "s70_bt"; const inp = R("s70_bt", "inp");
+    cam = [420, 210, t < E.blocked ? 1.8 : 2.1];
+    if (!in20) cursorTo(c.sc, t, [700, 500], ctr(inp), E.backtest + 0.2, E.bt20 - 0.15, E.bt20 - 0.1); else { c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0); }
+    c.sc.highlight(t >= E.blocked ? [188, 230, 330, 60] : null, P(t, E.blocked, E.blocked + 0.2));
+  } else { n = "s74_closed"; cam = [300, 330, 1 + 0.9 * eio(P(t, E.closed, E.closed + 0.9))]; c.sc.off(); }
+  c.sc.set(n, null, 0, cam);
+  shoutAt(c.s1, t, E.blocked, E.closed - 0.1);
+  c.cap.style.opacity = t > E.closed - 0.1 ? 1 : 0; playWords(c.w2, t, E.closed, 0.08);
+  if (t > E.home) { const kk = eio(P(t, E.home, E.home + 0.8)); setDot(lerp(1500, 610, kk), lerp(980, 520, kk) - Math.sin(Math.PI * kk) * 260, 14, 1 - P(t, sc.end - 0.3, sc.end)); }
+  S.agents.el.style.opacity = 1 - P(t, sc.end - 0.2, sc.end);
 });
 
-// 11. CLOSE: staccato, silence, logo
-scene("close", (el) => {
-  el.style.background = "#000";
+// 16. DEVELOPERS
+scene("dev", (el, E) => {
+  glow(el, "#0a0a0a", "rgba(0,102,245,.22)", "50% 60%");
+  const sc = Screen(el);
+  const chips = ["Convex", "PayPal", "Claude", "Verifier in your browser"].map((s, i) => { const e = h("div", "shout", el, s); css(e, { left: [300, 690, 1080, 560][i] + "px", top: [400, 400, 400, 580][i] + "px", fontSize: "64px", textTransform: "none", background: i === 1 ? "var(--blue)" : "#fff", color: i === 1 ? "#fff" : "#000" }); return e; });
+  const head = h("div", "cap", el, "Under the hood"); css(head, { top: "240px", color: "#8a8a8a", fontSize: "48px" });
+  return { sc, chips, head };
+}, (t, c, E, sc) => {
+  TAG = t < E.stack - 0.1 ? "Live app · developer docs" : null; DARK = true;
+  const k = eo(P(t, sc.start, sc.start + 0.6));
+  c.sc.pose({ y: 30 + (1 - k) * 500, s: 0.9, rx: (1 - k) * 20 + 3, o: P(t, sc.start, sc.start + 0.2) * (1 - P(t, E.stack - 0.35, E.stack - 0.1)) });
+  if (t < E.mcp) { c.sc.set("x50_docs", null, 0, [500, 300, 1.4]); c.sc.highlight(null, 0); }
+  else if (t < E.embed) { const r = R("x52_mcp_code", "code"); c.sc.set("x52_mcp_code", null, 0, [r[0] + 360, r[1] + 30, 1 + 1.1 * eio(P(t, E.mcp, E.mcp + 0.6))]); c.sc.highlight(r, P(t, E.mcp + 0.4, E.mcp + 0.7)); }
+  else { c.sc.set("x50_docs", null, 0, [600, 380, 1.15 + 0.3 * eio(P(t, E.embed, E.embed + 1))]); c.sc.highlight(null, 0); }
+  c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0);
+  c.head.style.opacity = P(t, E.stack, E.stack + 0.2);
+  c.chips.forEach((e, i) => pop(e, t, E.stackItems[i] ?? E.stack, 0.6));
+  S.dev.el.style.opacity = 1 - P(t, sc.end - 0.2, sc.end);
+});
+
+// 17. CLOSE
+scene("close", (el, E) => {
+  glow(el, "#0a0a0a", "rgba(0,102,245,.25)", "50% 50%");
+  const floats = [["s44_settled", [164, 302, 682, 298]], ["s32_live", [188, 335, 634, 147]], ["s34_proved", [392, 80, 432, 82]], ["x31_sam_bell", [756, 66, 384, 270]], ["s62_approved", [160, 280, 560, 330]], ["x61_scam2", [196, 533, 594, 170]], ["s53b_broken", [560, 600, 880, 120]], ["s24_payer_approved", [517, 396, 300, 260]]].map(([n, r], i) => { const e = Crop(el, n, r, 0.7); e.i = i; return e; });
+  const pitch = h("div", "cap", el); css(pitch, { top: "390px", color: "#fff", fontSize: "110px", lineHeight: "1.04" });
+  const pw1 = words(pitch, "Payments that keep *their word.*"), pw2 = words(pitch, "| For people, and the agents working for them.");
+  pw2.style.fontSize = "56px"; pw2.style.marginTop = "28px";
   const words4 = [["Say it.", "var(--blue)", "#fff"], ["Prove it.", "#fff", "var(--ink)"], ["Hold it.", "var(--blue)", "#fff"], ["Keep it.", "#000", "#fff"]].map(([s, bg, fg]) => { const d = h("div", "stacc", el, s); css(d, { background: bg, color: fg }); return d; });
+  const black = h("div", "layer", el); black.style.background = "#000";
   const end = h("div", "layer", el); end.style.background = "var(--canvas)";
   const word = h("div", "", end); css(word, { position: "absolute", left: "0", right: "0", top: "210px", textAlign: "center", fontSize: "300px", lineHeight: "1", letterSpacing: "-0.065em" });
   const k = h("span", "", word, "Kept"); const per = h("span", "", word); css(per, { display: "inline-block", width: "72px" });
@@ -522,51 +717,48 @@ scene("close", (el) => {
   const links = h("div", "", end, `${SITE ? `<span style="color:var(--ink)">${SITE}</span> &nbsp;·&nbsp; ` : ""}${GITHUB} &nbsp;·&nbsp; Built on PayPal + Claude`); css(links, { position: "absolute", left: "0", right: "0", top: "660px", textAlign: "center", fontSize: "30px", color: "#0a0a0a", letterSpacing: "-0.02em" });
   const disc = h("div", "", end, "Recorded on a local deployment with Kept's PayPal simulator: no real money moved. The Claude drafting step is shown as an illustration."); css(disc, { position: "absolute", left: "0", right: "0", bottom: "70px", textAlign: "center", fontSize: "21px", color: "#8a8a8a", fontWeight: "500", letterSpacing: "-0.01em" });
   const ring = h("div", "", end); css(ring, { position: "absolute", width: "100px", height: "100px", margin: "-50px 0 0 -50px", borderRadius: "50%", border: "4px solid var(--blue)" });
-  return { words4, end, k, per, tagl, links, disc, ring, word };
-}, (t, c) => {
-  c.words4.forEach((d, i) => { const a = T.stacc[i], b = T.stacc[i + 1] ?? T.silence; show(d, t >= a && t < b); d.style.transform = `scale(${1.25 - 0.25 * eo(P(t, a, a + 0.25))})`; });
-  show(c.end, t >= T.endLogo - 0.6);
-  // silence: the dot alone on black, then it lands as the period
+  return { floats, pitch, pw1, pw2, words4, black, end, k, per, tagl, links, disc, ring, word };
+}, (t, c, E, sc) => {
+  const pOn = t < E.stacc[0];
+  DARK = true;
+  c.floats.forEach((e) => { const a = (e.i / c.floats.length) * Math.PI * 2 + (t - sc.start) * 0.3; const r = 1 + 0.2 * eo(P(t, sc.start, sc.start + 1.2)); css(e, { display: pOn ? "block" : "none", left: 960 + Math.cos(a) * 780 * r - 210 + "px", top: 520 + Math.sin(a) * 400 * r - 100 + "px", opacity: 0.6 * P(t, sc.start, sc.start + 0.4), transform: `rotate(${Math.sin(a) * 8}deg) scale(${0.8 + 0.2 * Math.cos(a)})` }); });
+  spanWords(c.pw1, t, VO.z1.start, VO.z1.ph[1]); spanWords(c.pw2, t, VO.z1.ph[1], VO.z1.end);
+  c.pitch.style.opacity = pOn ? 1 : 0;
+  c.words4.forEach((d, i) => { const a = E.stacc[i], b = E.stacc[i + 1] ?? E.silence; show(d, t >= a && t < b); d.style.transform = `scale(${1.25 - 0.25 * eo(P(t, a, a + 0.2))})`; });
+  show(c.black, t >= E.silence); show(c.end, t >= E.logo - 0.5);
   const r = c.per.getBoundingClientRect(); const px = r.left + 36, py = r.bottom - 56;
-  if (t >= T.silence && t < T.endLogo) { const kk = eio(P(t, T.endLogo - 0.6, T.endLogo)); setDot(lerp(960, px, kk), lerp(540, py, kk), 18 + 12 * kk, P(t, T.silence + 0.2, T.silence + 0.6)); c.end.style.opacity = P(t, T.endLogo - 0.6, T.endLogo); }
-  else if (t >= T.endLogo) { setDot(px, py, 30, 1 - P(t, DURATION - 1, DURATION)); c.end.style.opacity = 1; }
-  c.k.style.clipPath = `inset(0 ${100 - eo(P(t, T.endLogo, T.endLogo + 0.5)) * 100}% 0 0)`;
-  c.word.style.transform = `scale(${1.06 - 0.06 * eo(P(t, T.endLogo, T.endLogo + 1.2))})`;
-  const rk = P(t, T.endLogo, T.endLogo + 0.9); css(c.ring, { left: px + "px", top: py + "px", transform: `scale(${0.5 + rk * 6})`, opacity: rk > 0 && rk < 1 ? 1 - rk : 0 });
-  c.tagl.style.opacity = P(t, T.endLogo + 0.8, T.endLogo + 1.2); c.links.style.opacity = P(t, T.endLogo + 1.4, T.endLogo + 1.8); c.disc.style.opacity = P(t, T.endLogo + 2.0, T.endLogo + 2.4);
-  S.close.el.style.opacity = 1 - P(t, DURATION - 1, DURATION);
+  if (t >= E.silence && t < E.logo) { const kk = eio(P(t, E.logo - 0.5, E.logo)); setDot(lerp(960, px, kk), lerp(540, py, kk), 18 + 12 * kk, P(t, E.silence + 0.1, E.silence + 0.4)); c.end.style.opacity = P(t, E.logo - 0.5, E.logo); }
+  else if (t >= E.logo) { setDot(px, py, 30, 1 - P(t, E.end - 0.8, E.end)); c.end.style.opacity = 1; }
+  if (t >= E.logo - 0.5) DARK = false;
+  c.k.style.clipPath = `inset(0 ${100 - eo(P(t, E.logo, E.logo + 0.4)) * 100}% 0 0)`;
+  c.word.style.transform = `scale(${1.06 - 0.06 * eo(P(t, E.logo, E.logo + 1.2))})`;
+  const rk = P(t, E.logo, E.logo + 0.8); css(c.ring, { left: px + "px", top: py + "px", transform: `scale(${0.5 + rk * 6})`, opacity: rk > 0 && rk < 1 ? 1 - rk : 0 });
+  c.tagl.style.opacity = P(t, E.logo + 0.6, E.logo + 0.9); c.links.style.opacity = P(t, E.logo + 1.1, E.logo + 1.4); c.disc.style.opacity = P(t, E.logo + 1.6, E.logo + 1.9);
+  S.close.el.style.opacity = 1 - P(t, E.end - 0.8, E.end);
 });
 
 // ---------- render
-const TAGS = [[22.2, 30.2, "Live app · PayPal simulator"], [30.2, 36, "Illustration · Claude drafting not run live"], [36, 54, "Real output of Kept's verifier"], [54, 63, "Live app · public verify page"], [63, 111, "Live app · PayPal simulator"], [111, 125, "Real API responses · PayPal simulator"], [125, 133, "Live app · PayPal simulator"]];
 window.render = (t) => {
-  D = null;
+  D = null; TAG = null; DARK = false;
   for (const id in S) {
     const { el, sc, ctx, update } = S[id];
-    const on = t >= sc.start - 0.001 && t < sc.end;
+    const on = t >= sc.start - 0.0001 && t < sc.end;
     el.style.display = on ? "block" : "none";
-    if (on) { el.style.opacity = 1; update(t, ctx); }
+    if (on) { el.style.opacity = 1; update(t, ctx, EV[id], sc); }
   }
-  // chapter pills + ruler
-  const chOn = t >= 22.4 && t < 132.8;
-  const ch = $("chapters"); ch.style.opacity = P(t, 22.4, 22.9) * (1 - P(t, 132.4, 132.8)); show(ch, chOn);
-  const dark = (t >= 36 && t < 54) || (t >= 91 && t < 93.2) || (t >= 111 && t < 125) || (t >= T.notUs && t < 111);
-  $("pills").style.background = dark ? "rgba(30,30,30,.8)" : "rgba(255,255,255,.72)";
-  pills.forEach((p, i) => { const a = p.c.start, b = CHAPTERS[i + 2].start; const on = t >= a && t < b; p.classList.toggle("on", on); p.style.color = on ? "#fff" : dark ? "#9a9a9a" : "#6b6b6b"; p.style.background = on ? (dark ? "#0066f5" : "#0a0a0a") : "transparent"; p.shine.style.left = on ? `${-60 + ((t - a) % 1.6) / 1.6 * (p.offsetWidth + 120)}px` : "-80px"; });
-  const prog = P(t, 22, 133);
-  [...$("ruler").children].forEach((tk, i) => { const on = i / 60 <= prog; tk.style.background = on ? "#0066f5" : dark ? "rgba(255,255,255,.2)" : "rgba(0,0,0,.18)"; });
-  // corner tag
-  const tg = TAGS.find(([a, b]) => t >= a && t < b);
-  tag.style.opacity = tg ? P(t, tg[0], tg[0] + 0.3) * (1 - P(t, tg[1] - 0.3, tg[1])) : 0;
-  if (tg) tag.querySelector("span").textContent = tg[2];
-  // dot
+  const scn = TL.scenes.find((s) => t >= s.start && t < s.end);
+  show($("chapters"), !!(scn?.ch && t > TL.chapters[0].start + 0.3));
+  $("pills").style.background = DARK ? "rgba(30,30,30,.8)" : "rgba(255,255,255,.72)";
+  pills.forEach((p, i) => { const a = p.c.start, b = TL.chapters[i + 1]?.start ?? TL.duration, on = t >= a && t < b; p.style.color = on ? "#fff" : DARK ? "#9a9a9a" : "#6b6b6b"; p.style.background = on ? (DARK ? "#0066f5" : "#0a0a0a") : "transparent"; p.shine.style.left = on ? `${-60 + (((t - a) % 1.6) / 1.6) * (p.offsetWidth + 120)}px` : "-80px"; });
+  const prog = P(t, TL.chapters[0].start, TL.scenes.find((s) => s.id === "close").start);
+  [...$("ruler").children].forEach((tk, i) => { tk.style.background = i / 60 <= prog ? "#0066f5" : DARK ? "rgba(255,255,255,.2)" : "rgba(0,0,0,.18)"; });
+  tag.style.opacity = TAG ? 1 : 0; if (TAG) tag.querySelector("span").textContent = TAG;
   if (D && D.o > 0.001) css(dot, { display: "block", width: D.r * 2 + "px", height: D.r * 2 + "px", transform: `translate(${D.x - D.r}px, ${D.y - D.r}px)`, opacity: D.o }); else dot.style.display = "none";
-  // flashes on the two logo hits
-  flash.style.opacity = 0.85 * (1 - P(t, T.logoHit, T.logoHit + 0.25)) * (t >= T.logoHit ? 1 : 0) + 0.6 * (1 - P(t, T.endLogo, T.endLogo + 0.25)) * (t >= T.endLogo ? 1 : 0);
+  const hit1 = EV.title.hit, hit2 = EV.close.logo;
+  flash.style.opacity = 0.85 * (1 - P(t, hit1, hit1 + 0.25)) * (t >= hit1 ? 1 : 0) + 0.6 * (1 - P(t, hit2, hit2 + 0.25)) * (t >= hit2 ? 1 : 0);
 };
-window.FRAMES = Math.round(DURATION * FPS); window.FPS = FPS;
+window.FRAMES = Math.round(TL.duration * FPS); window.FPS = FPS; window.TL = TL;
 window.ready = true;
-const q = new URLSearchParams(location.search);
 if (q.has("t")) window.render(Number(q.get("t")));
 </script>
 </body>
