@@ -5,7 +5,7 @@
  *
  *   node video/graph.mjs
  */
-import { writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { DEFAULT_FEE_BPS, EXAMPLES, enabledEvents, formatCents, initialState, isTerminal, renderContract, step, verify } from "../packages/core/dist/index.js";
 
 function explore(ir) {
@@ -59,8 +59,9 @@ function summarize(ir) {
   };
 }
 
-const out = { naive: summarize(EXAMPLES.logoNaive), fixed: summarize(EXAMPLES.logoFixed), rules: renderContract(EXAMPLES.logoFixed, { feeBps: DEFAULT_FEE_BPS }).rules ?? null, fmt: formatCents(30000, "USD") };
+const out = { naive: summarize(EXAMPLES.logoNaive), fixed: summarize(EXAMPLES.logoFixed), plumber: summarize(EXAMPLES.plumberDraft), rules: renderContract(EXAMPLES.logoFixed, { feeBps: DEFAULT_FEE_BPS }).rules ?? null, fmt: formatCents(30000, "USD") };
+mkdirSync(new URL("./out/", import.meta.url), { recursive: true });
 writeFileSync(new URL("./out/graph.json", import.meta.url), JSON.stringify(out));
-for (const k of ["naive", "fixed"]) console.log(k, out[k].summary, JSON.stringify({ states: out[k].graph.nodes.length, edges: out[k].graph.edges.length, ends: out[k].stats.terminalStates, depth: out[k].stats.maxDepth, ms: Math.round(out[k].stats.ms) }));
+for (const k of ["naive", "fixed", "plumber"]) console.log(k, out[k].summary, JSON.stringify({ states: out[k].graph.nodes.length, edges: out[k].graph.edges.length, ends: out[k].stats.terminalStates, depth: out[k].stats.maxDepth, ms: Math.round(out[k].stats.ms) }));
 console.log("VIOLATED:", out.naive.violated?.title, "=>", out.naive.violated?.outcome);
 for (const s of out.naive.violated?.steps ?? []) console.log("  -", s.narration.join(" "), JSON.stringify([s.held, s.released, s.refunded]));

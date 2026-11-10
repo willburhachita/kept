@@ -1,0 +1,136 @@
+[
+ {
+  "k": "paper",
+  "req": {
+   "merchantEmail": "orders@supplies.example.com",
+   "merchantName": "Supplies Co",
+   "amountCents": 2500,
+   "currency": "USD",
+   "description": "Printer paper, 5 reams",
+   "idempotencyKey": "paper-1"
+  },
+  "status": 200,
+  "res": {
+   "amount": "$25.00",
+   "amountCents": 2500,
+   "createdAt": 1794245312159,
+   "currency": "USD",
+   "description": "Printer paper, 5 reams",
+   "feeCents": 63,
+   "final": false,
+   "merchantEmail": "orders@supplies.example.com",
+   "merchantName": "Supplies Co",
+   "reasons": [
+    "within every limit of the mandate"
+   ],
+   "remainingCents": 17500,
+   "spendId": "mn75h908septrkfnkzaygjjmn98hww3x",
+   "status": "executing"
+  }
+ },
+ {
+  "k": "toner",
+  "req": {
+   "merchantEmail": "orders@supplies.example.com",
+   "merchantName": "Supplies Co",
+   "amountCents": 4000,
+   "currency": "USD",
+   "description": "Toner cartridge",
+   "idempotencyKey": "toner-1"
+  },
+  "status": 200,
+  "res": {
+   "amount": "$40.00",
+   "amountCents": 4000,
+   "createdAt": 1794245312326,
+   "currency": "USD",
+   "description": "Toner cartridge",
+   "feeCents": 100,
+   "final": false,
+   "merchantEmail": "orders@supplies.example.com",
+   "merchantName": "Supplies Co",
+   "reasons": [
+    "amount is above the auto-approve limit of $30.00"
+   ],
+   "remainingCents": 13500,
+   "spendId": "mn71n7ycx1qxy7qd8kscvdb8sh8hw56c",
+   "status": "needs_approval"
+  }
+ },
+ {
+  "k": "chair",
+  "req": {
+   "merchantEmail": "orders@supplies.example.com",
+   "merchantName": "Supplies Co",
+   "amountCents": 6000,
+   "currency": "USD",
+   "description": "Office chair",
+   "idempotencyKey": "chair-1"
+  },
+  "status": 200,
+  "res": {
+   "amount": "$60.00",
+   "amountCents": 6000,
+   "createdAt": 1794245312376,
+   "currency": "USD",
+   "description": "Office chair",
+   "feeCents": 0,
+   "final": true,
+   "merchantEmail": "orders@supplies.example.com",
+   "merchantName": "Supplies Co",
+   "reasons": [
+    "amount exceeds the per-purchase limit of $50.00"
+   ],
+   "remainingCents": 13500,
+   "spendId": "mn77cydk3a9d5dkenhn9mm4qb18hx5e9",
+   "status": "denied"
+  }
+ },
+ {
+  "k": "unlisted",
+  "req": {
+   "merchantEmail": "deals@cheap-gadgets.example.net",
+   "merchantName": "Cheap Gadgets",
+   "amountCents": 1500,
+   "currency": "USD",
+   "description": "Bluetooth speaker",
+   "idempotencyKey": "spk-1"
+  },
+  "status": 200,
+  "res": {
+   "amount": "$15.00",
+   "amountCents": 1500,
+   "createdAt": 1794245312421,
+   "currency": "USD",
+   "description": "Bluetooth speaker",
+   "feeCents": 0,
+   "final": true,
+   "merchantEmail": "deals@cheap-gadgets.example.net",
+   "merchantName": "Cheap Gadgets",
+   "reasons": [
+    "merchant is not on this mandate's allowlist"
+   ],
+   "remainingCents": 13500,
+   "spendId": "mn7apympezhh3v6hrtcc1bb8cd8hxpwf",
+   "status": "denied"
+  }
+ },
+ {
+  "k": "fake",
+  "req": {
+   "merchantEmail": "orders@supplies.example.com",
+   "merchantName": "Supplies Co",
+   "amountCents": 2500,
+   "currency": "USD",
+   "description": "Printer paper",
+   "idempotencyKey": "x-1"
+  },
+  "status": 401,
+  "res": {
+   "error": {
+    "code": "UNAUTHENTICATED",
+    "message": "Invalid, revoked or expired mandate token."
+   }
+  }
+ }
+]

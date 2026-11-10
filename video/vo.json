@@ -1,0 +1,28 @@
+{
+  "voice": "af_heart",
+  "speed": 1.0,
+  "note": "Voiceover lines. Each line is synthesized to out/vo/<id>.wav by vo.py; timeline.js places them. 'gap' is the breathing space (seconds) after the line.",
+  "lines": [
+    { "id": "p1", "gap": 0.5, "text": "You sent the deposit. The logo never came." },
+    { "id": "p2", "gap": 0.6, "text": "Or you did the work, and the money never came." },
+    { "id": "p3", "gap": 1.1, "text": "The payment worked. The promise didn't." },
+    { "id": "t1", "gap": 0.9, "text": "This is Kept. Money moves only when a promise is kept." },
+    { "id": "s1", "gap": 0.4, "text": "Describe the deal the way you'd text it." },
+    { "id": "s2", "gap": 0.8, "text": "Claude writes down what each side is owed, and the rules that move the money." },
+    { "id": "v1", "gap": 0.5, "text": "Then a verifier walks every possible path. Every delivery, every deadline, every review." },
+    { "id": "v2", "gap": 0.6, "text": "Here, it caught a real bug. Deliver on time, and the designer could still lose two hundred dollars." },
+    { "id": "v3", "gap": 0.9, "text": "So the rules get repaired. Never your promises. Proved, across every outcome." },
+    { "id": "h1", "gap": 0.4, "text": "Both sides approve the same fingerprint." },
+    { "id": "h2", "gap": 0.9, "text": "Then the money is held by PayPal. Not by a stranger. Not by us." },
+    { "id": "k1", "gap": 0.4, "text": "The logo arrives. Maya accepts." },
+    { "id": "k2", "gap": 0.9, "text": "Three hundred dollars, released exactly as proved." },
+    { "id": "c1", "gap": 0.5, "text": "Every cent leaves a signed trail. So try to rewrite it." },
+    { "id": "c2", "gap": 0.6, "text": "Two hundred becomes two thousand. Broken." },
+    { "id": "c3", "gap": 0.9, "text": "Even if you cover your tracks. Not even we can rewrite it." },
+    { "id": "a1", "gap": 0.5, "text": "Now give an AI agent a budget, not your card." },
+    { "id": "a2", "gap": 0.6, "text": "Paper, paid. Toner, it asks you first. A chair over the limit, denied. A shop you never allowed, denied." },
+    { "id": "a3", "gap": 1.0, "text": "Close the budget, and every unused dollar comes home." },
+    { "id": "e1", "gap": 0.7, "text": "Say it. Prove it. Hold it. Keep it." },
+    { "id": "e2", "gap": 1.5, "text": "Kept." }
+  ]
+}
