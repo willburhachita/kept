@@ -16,7 +16,14 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..");
 const OUT = join(HERE, "out");
 const PORT = 4599;
-const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
+// Chrome/Chromium binary: KEPT_CHROME wins, else the usual install path for this platform.
+const CHROME =
+  process.env.KEPT_CHROME ||
+  (process.platform === "win32"
+    ? "C:/Program Files/Google/Chrome/Application/chrome.exe"
+    : process.platform === "darwin"
+      ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      : ["/usr/bin/google-chrome", "/usr/bin/chromium", "/opt/pw-browsers/chromium"].find((p) => existsSync(p)) ?? "google-chrome");
 const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".mjs": "text/javascript", ".json": "application/json", ".woff2": "font/woff2", ".jpg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".wav": "audio/wav", ".mp4": "video/mp4" };
 const ALLOWED = ["video/", "node_modules/@fontsource-variable/", "web/assets/photos/"];
 // Reference clips the user supplied, by index: read only, used for style analysis.

@@ -12,7 +12,7 @@ html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; 
 body { font-family: Inter, system-ui, sans-serif; font-weight: 600; letter-spacing: -0.05em; color: var(--ink); -webkit-font-smoothing: antialiased; }
 #stage { position: absolute; inset: 0; overflow: hidden; background: var(--canvas); perspective: 2400px; }
 .layer { position: absolute; inset: 0; }
-.scene { position: absolute; inset: 0; display: none; transform-style: preserve-3d; }
+.scene { position: absolute; inset: 0; display: none; perspective: 2400px; }
 .glow { position: absolute; inset: -20%; pointer-events: none; }
 .w { display: inline-block; white-space: pre; will-change: transform, opacity; }
 .gray { color: var(--muted); }
@@ -40,7 +40,7 @@ body { font-family: Inter, system-ui, sans-serif; font-weight: 600; letter-spaci
 #dot { position: absolute; left: 0; top: 0; border-radius: 50%; background: var(--blue); z-index: 70; box-shadow: 0 0 30px rgba(0,102,245,.6); }
 #flash { position: absolute; inset: 0; background: #fff; z-index: 80; pointer-events: none; opacity: 0; }
 /* cold open chat */
-.chat { position: absolute; left: 50%; top: 150px; width: 760px; margin-left: -380px; transform-style: preserve-3d; }
+.chat { position: absolute; left: 50%; top: 120px; width: 760px; margin-left: -380px; zoom: 1.32; }
 .bub { position: absolute; max-width: 560px; padding: 20px 28px; border-radius: 32px; font-size: 40px; letter-spacing: -0.03em; font-weight: 500; }
 .bub.me { right: 0; background: #fff; color: var(--ink); border-bottom-right-radius: 10px; }
 .bub.them { left: 0; background: #262626; color: #fff; border-bottom-left-radius: 10px; }
@@ -233,7 +233,7 @@ scene("say", (el) => {
   const sc = Screen(el);
   const top = h("div", "cap", el); css(top, { top: "64px", fontSize: "54px" });
   const lead = h("span", "", top, "Say the deal the way you'd text ");
-  const box = h("span", "", top); css(box, { display: "inline-block", position: "relative", background: "var(--ink)", color: "#fff", borderRadius: "16px", padding: "4px 20px", overflow: "hidden", verticalAlign: "bottom", height: "70px", width: "330px", textAlign: "left" });
+  const box = h("span", "", top); css(box, { display: "inline-block", position: "relative", background: "var(--ink)", color: "#fff", borderRadius: "16px", padding: "4px 20px", overflow: "hidden", verticalAlign: "bottom", height: "72px", width: "370px", textAlign: "left", whiteSpace: "nowrap" });
   const opts = ["a freelancer.", "a plumber.", "a supplier."].map((s) => { const e = h("div", "", box, s); css(e, { position: "absolute", left: "20px", top: "4px" }); return e; });
   // Claude drafting illustration
   const panel = h("div", "card dark", el); css(panel, { left: "1010px", top: "190px", width: "820px", height: "700px", padding: "44px" });
@@ -352,7 +352,7 @@ scene("proved", (el) => {
   return { sc, w, ban };
 }, (t, c) => {
   const k = eo(P(t, 54, 55.2));
-  c.sc.pose({ x: 330 + (1 - k) * 600, y: 20, s: 0.78, ry: -14 + 4 * k, rx: 4, o: P(t, 54, 54.4) });
+  c.sc.pose({ x: 300 + (1 - k) * 600, y: 30, s: 0.7, ry: -12 + 4 * k, rx: 3, o: P(t, 54, 54.4) });
   const z = 1 + 0.5 * eio(P(t, 56.6, 58.2));
   c.sc.set("s34_proved", null, 0, [720, 300, z]); c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0); c.sc.highlight(null, 0);
   playWords(c.w, t, 55.2, 0.12);
@@ -365,9 +365,9 @@ scene("proved", (el) => {
 scene("hold", (el) => {
   glow(el, "var(--canvas)", "rgba(0,102,245,.16)", "50% 50%");
   const fr = [190, 400, 640, 90];
-  const ca = Crop(el, "s23_payer_review", fr, 1.25), cb = Crop(el, "s20_payee_review", fr, 1.25);
+  const ca = Crop(el, "s23_payer_review", fr, 1.6), cb = Crop(el, "s20_payee_review", fr, 1.6);
   const la = h("div", "eyebrow", el, "Maya · paying"), lb = h("div", "eyebrow", el, "Sam · getting paid");
-  const match = h("div", "", el, "Same terms. Same fingerprint."); css(match, { position: "absolute", left: "0", right: "0", top: "760px", textAlign: "center", fontSize: "56px" });
+  const match = h("div", "", el, "Same terms. Same fingerprint."); css(match, { position: "absolute", left: "0", right: "0", top: "730px", textAlign: "center", fontSize: "56px" });
   const sc = Screen(el);
   const vault = h("div", "card dark", el); css(vault, { left: "1440px", top: "330px", width: "380px", height: "420px", padding: "34px", textAlign: "center" });
   vault.innerHTML = `<div class="eyebrow" style="color:#8a8a8a">PayPal hold</div><div style="font-size:84px;margin-top:40px">$300</div><div style="font-size:22px;color:#8a8a8a;margin-top:10px;font-weight:500;letter-spacing:-.01em">authorized · nothing captured yet</div>`;
@@ -379,10 +379,10 @@ scene("hold", (el) => {
   // fingerprints slide together
   const a = eio(P(t, T.fpSlide, T.fpClick));
   const out = P(t, 66.4, 67.0);
-  css(c.ca, { left: lerp(120, 160, a) + "px", top: lerp(260, 300, a) + "px", opacity: P(t, 63.2, 63.6) * (1 - out), transform: `rotate(${(1 - a) * -4}deg)` });
-  css(c.cb, { left: lerp(1000, 160 + 0, a) + "px", top: lerp(520, 420, a) + "px", opacity: P(t, 63.4, 63.8) * (1 - out), transform: `rotate(${(1 - a) * 4}deg)` });
-  css(c.la, { position: "absolute", left: lerp(120, 990, a) + "px", top: lerp(225, 330, a) + "px", opacity: P(t, 63.2, 63.6) * (1 - out) });
-  css(c.lb, { position: "absolute", left: lerp(1000, 990, a) + "px", top: lerp(645, 450, a) + "px", opacity: P(t, 63.4, 63.8) * (1 - out) });
+  css(c.ca, { left: lerp(80, 448, a) + "px", top: lerp(250, 330, a) + "px", opacity: P(t, 63.2, 63.6) * (1 - out), transform: `rotate(${(1 - a) * -4}deg)` });
+  css(c.cb, { left: lerp(820, 448, a) + "px", top: lerp(560, 490, a) + "px", opacity: P(t, 63.4, 63.8) * (1 - out), transform: `rotate(${(1 - a) * 4}deg)` });
+  css(c.la, { position: "absolute", left: lerp(80, 448, a) + "px", top: lerp(215, 295, a) + "px", opacity: P(t, 63.2, 63.6) * (1 - out) });
+  css(c.lb, { position: "absolute", left: lerp(820, 1300, a) + "px", top: lerp(715, 645, a) + "px", opacity: P(t, 63.4, 63.8) * (1 - out) });
   const ck = P(t, T.fpClick, T.fpClick + 0.5);
   c.ca.style.boxShadow = c.cb.style.boxShadow = ck > 0 ? `0 0 0 ${4 * (1 - ck) + 2}px var(--blue), 0 30px 80px -20px rgba(0,0,0,.3)` : "";
   c.match.style.opacity = P(t, T.fpClick, T.fpClick + 0.3) * (1 - out);
@@ -398,8 +398,8 @@ scene("hold", (el) => {
   c.vault.style.opacity = P(t, T.simIn + 0.6, T.simIn + 1.0); c.vault.style.transform = `translateY(${(1 - eo(P(t, T.simIn + 0.6, T.simIn + 1.2))) * 60}px)`;
   const sh = c.lock.querySelector(".sh"); sh.style.transform = `translateY(${(1 - eo(P(t, T.holdDrop + 0.3, T.holdDrop + 0.45))) * -4}px)`;
   playWords(c.w, t, VO.h2 + 0.2, 0.1); c.cap.style.opacity = 1;
-  if (t >= T.simClick && t < T.holdDrop + 0.5) { const k = eio(P(t, T.simClick + 0.1, T.holdDrop + 0.4)); setDot(lerp(760, 1630, k), lerp(640, 560, k) - Math.sin(Math.PI * k) * 300, 16, 1); }
-  else if (t >= T.holdDrop + 0.5) setDot(1630, 560, 16 * (1 - P(t, 76.4, 76.9)), 1);
+  if (t >= T.simClick && t < T.holdDrop + 0.5) { const k = eio(P(t, T.simClick + 0.1, T.holdDrop + 0.4)); setDot(lerp(760, 1630, k), lerp(640, 690, k) - Math.sin(Math.PI * k) * 300, 16 - 4 * k, 1); }
+  else if (t >= T.holdDrop + 0.5) setDot(1630, 690, 12 * (1 - P(t, 76.4, 76.9)), 1);
   S.hold.el.style.opacity = 1 - P(t, 76.6, 77);
 });
 
@@ -451,16 +451,17 @@ scene("cheat", (el) => {
   const cell = [703, 671, 150, 38], [cx, cy] = ctr(cell);
   const cb = R("s50b_pre", "cb");
   let n, cam;
-  if (t < T.typing) { n = "s51a_grid"; cam = [cx - 100, cy - 140, 1 + 0.4 * eio(P(t, 93.6, 94.4))]; cursorTo(c.sc, t, [1100, 300], [cx, cy], 93.8, 94.55, T.cellClick); }
-  else if (t < T.broken) { n = "s52a_typing"; cam = [cx - 100, cy - 140, 1.4]; c.sc.cursor(cx + 70, cy + 10, true); c.sc.ripple(0, 0, 0); }
-  else if (t < 99.2) { n = "s53a_broken"; const z = 1.4 - 0.25 * eio(P(t, T.broken + 0.6, T.broken + 1.6)); cam = [720, lerp(cy - 140, 470, eio(P(t, T.broken + 0.6, T.broken + 1.6))), z]; c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0); }
+  if (t < T.cellClick + 0.12) { n = "s51a_grid"; cam = [720, 360, 1 + 0.25 * eio(P(t, 93.6, 94.4))]; cursorTo(c.sc, t, [1100, 200], [760, 640], 93.8, 94.55, 0); }
+  else if (t < T.broken) { n = "s52a_typing"; cam = [cx - 100, cy - 140, 1.4 - 0.15 * (1 - eo(P(t, T.cellClick + 0.12, T.typing)))]; c.sc.cursor(cx + 70, cy + 10, true); c.sc.ripple(cx, cy, P(t, T.cellClick + 0.12, T.cellClick + 0.55)); }
+  else if (t < 99.2) { n = "s53a_broken"; const e = eio(P(t, T.broken + 0.6, T.broken + 1.6)); cam = [lerp(cx - 100, 720, e), lerp(cy - 140, 420, e), 1.4 - 0.25 * e]; c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0); }
   else if (t < T.broken2) { const pre = t < T.coverClick + 0.1; n = pre ? "s50b_pre" : "s52b_typing"; cam = [600, 260, 1.3]; const [bx, by] = [cb[0] + 10, cb[1] + 10]; if (pre) cursorTo(c.sc, t, [1000, 600], [bx, by], 99.5, T.coverClick - 0.05, T.coverClick); else { c.sc.cursor(cx + 70, cy + 10, true); c.sc.ripple(bx, by, P(t, T.coverClick, T.coverClick + 0.45)); cam = [cx - 100, lerp(260, cy - 140, eio(P(t, 101.0, 101.8))), 1.3]; } }
   else { n = "s53b_broken"; cam = [1000, lerp(cy - 100, 520, eio(P(t, T.broken2 + 0.6, T.broken2 + 1.6))), 1.35 - 0.1 * eio(P(t, T.broken2 + 0.6, T.broken2 + 1.6))]; c.sc.cursor(0, 0, false); c.sc.ripple(0, 0, 0); }
   c.sc.set(n, null, 0, cam); c.sc.highlight(null, 0);
   // glitch slices on each break
   const g = (t > T.broken && t < T.broken + 0.45) || (t > T.broken2 && t < T.broken2 + 0.45);
   c.slices.forEach((s, i) => { const r = noise(Math.floor(t * 24) + i * 7.3); css(s, { display: g ? "block" : "none", top: r * 760 + "px", height: 6 + noise(i + Math.floor(t * 30)) * 40 + "px", opacity: 0.9 }); });
-  c.sc.el.style.filter = g ? `contrast(1.4) brightness(${0.9 + noise(t * 40) * 0.3})` : "";
+  const whip = P(t, T.cellClick, T.cellClick + 0.12) * (1 - P(t, T.cellClick + 0.12, T.cellClick + 0.3));
+  c.sc.el.style.filter = g ? `contrast(1.4) brightness(${0.9 + noise(t * 40) * 0.3})` : whip > 0 ? `blur(${whip * 14}px)` : "";
   playWords(c.w1, t, VO.c2, 0.12); c.cap.style.opacity = t > VO.c2 - 0.1 && t < 99.4 ? 1 : 0;
   playWords(c.w2, t, VO.c3, 0.12); c.cap2.style.opacity = t > VO.c3 - 0.1 && t < T.notUs ? 1 : 0;
   c.notUs.style.opacity = P(t, T.notUs, T.notUs + 0.25) * (1 - P(t, 110.4, 110.9)); playWords(c.w3, t, T.notUs + 0.1, 0.1);
