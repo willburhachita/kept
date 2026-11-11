@@ -1,0 +1,37 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+@font-face { font-family: Inter; src: url(../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2) format("woff2"); font-weight: 100 900; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1500px; height: 1000px; overflow: hidden; background: #f5f5f5; font-family: Inter; font-weight: 600; letter-spacing: -0.04em; color: #0a0a0a; position: relative; }
+.glow { position: absolute; inset: 0; background: radial-gradient(ellipse 55% 45% at 50% 70%, rgba(0,102,245,.16), transparent 70%); }
+.head { position: absolute; left: 80px; top: 64px; right: 400px; }
+.eyebrow { display: inline-flex; align-items: center; gap: 12px; font-size: 24px; letter-spacing: -0.01em; color: #6b6b6b; font-weight: 500; }
+.eyebrow b { width: 12px; height: 12px; border-radius: 50%; background: #0066f5; display: inline-block; }
+h1 { margin-top: 14px; font-size: 54px; line-height: 1.06; font-weight: 600; }
+h1 span { color: #8a8a8a; }
+.frame { position: absolute; left: 50%; bottom: 60px; transform: translateX(-50%); border-radius: 24px; overflow: hidden; background: #fff; box-shadow: 0 50px 100px -30px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.06); }
+.frame img { position: absolute; }
+.tag { position: absolute; right: 80px; top: 72px; font-size: 20px; letter-spacing: -0.01em; padding: 10px 16px; border-radius: 999px; background: rgba(10,10,10,.85); color: #fff; font-weight: 500; }
+.brand { position: absolute; left: 80px; bottom: 18px; font-size: 22px; color: #9a9a9a; font-weight: 600; letter-spacing: -0.03em; }
+.brand i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #0066f5; margin-left: 2px; }
+</style></head><body>
+<div class="glow"></div>
+<div class="head"><div class="eyebrow"><b></b><span id="eb"></span></div><h1 id="h"></h1></div>
+<div class="tag" id="tag"></div>
+<div class="frame" id="frame"><img id="img"></div>
+<script>
+const d = JSON.parse(decodeURIComponent(new URLSearchParams(location.search).get("d")));
+document.getElementById("eb").textContent = d.eyebrow;
+document.getElementById("h").innerHTML = d.title + (d.gray ? ` <span>${d.gray}</span>` : "");
+const tag = document.getElementById("tag"); if (d.tag) tag.textContent = d.tag; else tag.remove();
+document.fonts.ready.then(() => {
+const [x, y, w, h] = d.crop;
+const headBottom = document.querySelector(".head").getBoundingClientRect().bottom + 36;
+const maxW = 1340, maxH = 1000 - 60 - headBottom;
+const s = Math.min(maxW / w, maxH / h);
+const f = document.getElementById("frame"); f.style.width = w * s + "px"; f.style.height = h * s + "px";
+const im = document.getElementById("img"); im.src = `../shots/${d.shot}.jpg`;
+Object.assign(im.style, { width: 1440 * s + "px", height: 810 * s + "px", left: -x * s + "px", top: -y * s + "px" });
+im.decode().then(() => { window.done = true; });
+});
+</script></body></html>
