@@ -1,0 +1,315 @@
+1
+00:00:00,350 --> 00:00:02,835
+Somewhere right now, someone is typing, any update,
+
+2
+00:00:02,835 --> 00:00:04,418
+for the fourth time this week.
+
+3
+00:00:04,818 --> 00:00:05,993
+You paid the deposit.
+
+4
+00:00:05,993 --> 00:00:08,289
+The designer replied with a read receipt.
+
+5
+00:00:08,339 --> 00:00:09,844
+Flip it. You deliver the logo,
+
+6
+00:00:09,844 --> 00:00:12,520
+and the client vanishes faster than free pizza.
+
+7
+00:00:12,570 --> 00:00:14,712
+The payment worked. The promise didn't.
+
+8
+00:00:16,012 --> 00:00:18,956
+Meet Kept. Money moves only when a promise is kept.
+
+9
+00:00:19,256 --> 00:00:21,531
+For freelancers. Plumbers. Suppliers.
+
+10
+00:00:21,531 --> 00:00:24,087
+Anyone who has ever heard, I'll pay you Friday.
+
+11
+00:00:24,537 --> 00:00:26,769
+Just say the deal, the way you'd text it.
+
+12
+00:00:26,619 --> 00:00:29,074
+Pay the designer three hundred. A hundred now,
+
+13
+00:00:29,074 --> 00:00:30,714
+two hundred when the logo lands.
+
+14
+00:00:30,714 --> 00:00:32,880
+Refund me if nothing shows in a week.
+
+15
+00:00:32,980 --> 00:00:34,715
+Claude turns that into promises,
+
+16
+00:00:34,715 --> 00:00:36,862
+and the exact rules that move the money.
+
+17
+00:00:36,912 --> 00:00:38,197
+Typing something shady,
+
+18
+00:00:38,197 --> 00:00:40,087
+like a release fee to unlock your money?
+
+19
+00:00:40,087 --> 00:00:42,637
+Kept flags the scam before anyone pays.
+
+20
+00:00:43,337 --> 00:00:46,610
+Then Kept does what no payment app does. It proves the deal.
+
+21
+00:00:46,610 --> 00:00:48,175
+Every delivery, every deadline,
+
+22
+00:00:48,175 --> 00:00:49,855
+in every order they could happen.
+
+23
+00:00:49,855 --> 00:00:52,615
+Sixty-three possible futures for one plumber visit,
+
+24
+00:00:52,615 --> 00:00:54,270
+checked in two milliseconds.
+
+25
+00:00:55,220 --> 00:00:57,445
+And it caught a bug a tired lawyer would miss.
+
+26
+00:00:57,445 --> 00:00:58,505
+Deliver on time,
+
+27
+00:00:58,505 --> 00:01:01,117
+and the designer still loses two hundred dollars.
+
+28
+00:01:02,467 --> 00:01:05,428
+So the rules get repaired. Never your promises. Proved,
+
+29
+00:01:05,428 --> 00:01:06,852
+across every outcome.
+
+30
+00:01:07,052 --> 00:01:08,477
+And before anyone pays a cent,
+
+31
+00:01:08,477 --> 00:01:10,765
+you can see every way the deal can end.
+
+32
+00:01:11,815 --> 00:01:14,880
+You both approve the exact same terms. Same fingerprint.
+
+33
+00:01:14,880 --> 00:01:17,403
+Read it out loud, like a secret handshake.
+
+34
+00:01:17,503 --> 00:01:20,308
+Then the money sits with PayPal. Not with a stranger.
+
+35
+00:01:20,308 --> 00:01:22,895
+Not with us. Honestly, we don't want to hold it.
+
+36
+00:01:23,445 --> 00:01:26,610
+Under the hood, PayPal authorizes the full amount up front.
+
+37
+00:01:26,610 --> 00:01:29,410
+Each release captures only its slice and pays it out.
+
+38
+00:01:29,410 --> 00:01:31,383
+Refunds simply void the rest.
+
+39
+00:01:32,033 --> 00:01:34,472
+The logo lands. Maya taps accept.
+
+40
+00:01:34,722 --> 00:01:37,397
+Three hundred dollars, released exactly as proved.
+
+41
+00:01:37,397 --> 00:01:38,987
+And Sam's phone lights up.
+
+42
+00:01:39,437 --> 00:01:42,845
+Kept's cut? Seven fifty. Only when money actually moves.
+
+43
+00:01:43,495 --> 00:01:45,180
+Same engine, different job.
+
+44
+00:01:45,180 --> 00:01:47,450
+The plumber gets forty dollars for showing up,
+
+45
+00:01:47,450 --> 00:01:50,135
+and the rest when the sink stops leaking. No show?
+
+46
+00:01:50,135 --> 00:01:51,629
+Every cent comes home.
+
+47
+00:01:52,279 --> 00:01:54,254
+Every step is signed and hash-chained.
+
+48
+00:01:54,254 --> 00:01:57,484
+Anyone can check the receipts in their own browser.
+
+49
+00:01:57,484 --> 00:01:58,981
+No account, no trust required.
+
+50
+00:01:59,231 --> 00:02:01,200
+Now, the fun part. Let's cheat.
+
+51
+00:02:01,750 --> 00:02:05,132
+Change two hundred to two thousand. Bold. Also, broken.
+
+52
+00:02:05,582 --> 00:02:07,917
+Cover your tracks and re-hash it? Still broken.
+
+53
+00:02:07,917 --> 00:02:09,507
+Only Kept's key can sign,
+
+54
+00:02:09,507 --> 00:02:12,038
+and every later entry still points at the truth.
+
+55
+00:02:12,138 --> 00:02:13,784
+Not even we can rewrite it.
+
+56
+00:02:14,934 --> 00:02:16,939
+And before you pay anyone, paste their link.
+
+57
+00:02:16,939 --> 00:02:19,699
+Look-alike sites get caught, right in your browser.
+
+58
+00:02:20,449 --> 00:02:23,414
+AI agents are about to spend real money for us.
+
+59
+00:02:23,414 --> 00:02:26,173
+Someone has to make sure they spend it the way we meant.
+
+60
+00:02:26,273 --> 00:02:29,205
+Now give an AI agent a budget, not your card.
+
+61
+00:02:29,405 --> 00:02:33,310
+Paper? Paid. Toner? It asks you first. A sixty dollar chair?
+
+62
+00:02:33,310 --> 00:02:34,743
+Denied. Nice try, robot.
+
+63
+00:02:34,793 --> 00:02:37,643
+A shop you never approved? Denied. A stolen token?
+
+64
+00:02:37,643 --> 00:02:38,574
+Not today.
+
+65
+00:02:39,024 --> 00:02:42,195
+And every decision comes with a reason, in plain English.
+
+66
+00:02:42,245 --> 00:02:45,290
+Want stricter rules? Replay every real purchase first.
+
+67
+00:02:45,290 --> 00:02:48,179
+At twenty dollars max, two of these would have been blocked.
+
+68
+00:02:48,329 --> 00:02:51,253
+Close the budget, and every unused dollar comes home.
+
+69
+00:02:52,203 --> 00:02:55,354
+Building agents? Kept speaks REST and MCP. One command,
+
+70
+00:02:55,354 --> 00:02:58,161
+and your agent gets a budget it can't blow.
+
+71
+00:02:58,311 --> 00:03:01,526
+Or embed Kept in your own platform. One API key,
+
+72
+00:03:01,526 --> 00:03:04,196
+a few calls, and every cent is accounted for.
+
+73
+00:03:04,346 --> 00:03:06,401
+Under the hood: Convex for the backend,
+
+74
+00:03:06,401 --> 00:03:08,661
+PayPal for the money, Claude for the words,
+
+75
+00:03:08,661 --> 00:03:11,198
+and a verifier that runs right in your browser.
+
+76
+00:03:11,948 --> 00:03:14,133
+Payments that keep their word. For people,
+
+77
+00:03:14,133 --> 00:03:16,069
+and for the agents working for them.
+
+78
+00:03:16,319 --> 00:03:18,519
+Say it. Prove it. Hold it. Keep it.
+
+79
+00:03:19,869 --> 00:03:20,651
+Kept.
