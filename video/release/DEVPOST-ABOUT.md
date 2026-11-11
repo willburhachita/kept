@@ -45,11 +45,11 @@ A stand-in PayPal validates every request Kept sends, and every response it give
 
 Most payment disputes aren't fraud. They're two people remembering a deal differently. Writing the deal down precisely, and proving the money can only follow it, removes most of the argument before it starts. We also learned to test against the contract PayPal publishes, not against our own assumptions.
 
-## What's next
+## What's next for Kept
 
 A live sandbox run with real keys, then PayPal's multiparty flows for production so funds stay in PayPal's custody end to end, more templates (rent deposits, supplier orders, tutoring), and agent budgets on more storefronts.
 
-## Try it yourself
+**Try it yourself:**
 
 - Code: [github.com/willburhachita/kept](https://github.com/willburhachita/kept) (MIT)
 - Run it with your PayPal sandbox in about 10 minutes: [JUDGES.md](https://github.com/willburhachita/kept/blob/main/JUDGES.md)
