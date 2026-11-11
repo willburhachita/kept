@@ -90,7 +90,7 @@ async function accessToken(): Promise<string> {
   return json.access_token;
 }
 
-async function call<T>(method: "GET" | "POST", path: string, opts: { body?: unknown; requestId?: string } = {}): Promise<T> {
+async function call<T>(method: "GET" | "POST", path: string, opts: { body?: unknown; requestId?: string } = {}, retriedAuth = false): Promise<T> {
   const cfg = env.paypal();
   const token = await accessToken();
   const headers: Record<string, string> = {
@@ -121,8 +121,11 @@ async function call<T>(method: "GET" | "POST", path: string, opts: { body?: unkn
     json = null;
   }
   if (res.status === 401) {
+    // The cached token was revoked or expired early (e.g. the app's secret was rotated): get a fresh one
+    // and try once more. Safe for mutating calls: they carry the same PayPal-Request-Id.
     tokenCache = null;
-    throw new RailError("PayPal rejected the access token", { retryable: true, code: "PAYPAL_AUTH", status: 401 });
+    if (!retriedAuth) return call<T>(method, path, opts, true);
+    throw new RailError("PayPal rejected the access token. Check PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET (sandbox app, not live).", { retryable: true, code: "PAYPAL_AUTH", status: 401 });
   }
   if (!res.ok) {
     const detail = json?.details?.[0];

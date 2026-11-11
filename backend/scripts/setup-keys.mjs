@@ -70,7 +70,7 @@ const pub = createPublicKey(createPrivateKey({ key: pkcs8, format: "der", type: 
 set("JWT_PRIVATE_KEY", pem);
 set("JWKS", jwks);
 set("RECEIPT_SIGNING_KEY", seed.toString("hex"));
-set("SITE_URL", opt("site-url", "http://localhost:5173"), false);
+set("SITE_URL", opt("site-url", "http://localhost:3000"), false); // where `npm run dev:web` serves the app
 set("PAYMENT_RAIL", opt("rail", "sim"), false);
 set("FEE_BPS", String(Number(opt("fee-bps", "250"))), false);
 

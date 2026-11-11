@@ -38,6 +38,7 @@ import type * as lib_validators from "../lib/validators.js";
 import type * as mandates from "../mandates.js";
 import type * as notifications from "../notifications.js";
 import type * as outbound from "../outbound.js";
+import type * as paypalCheck from "../paypalCheck.js";
 import type * as rails_index from "../rails/index.js";
 import type * as rails_paypal from "../rails/paypal.js";
 import type * as rails_sim from "../rails/sim.js";
@@ -91,6 +92,7 @@ declare const fullApi: ApiFromModules<{
   mandates: typeof mandates;
   notifications: typeof notifications;
   outbound: typeof outbound;
+  paypalCheck: typeof paypalCheck;
   "rails/index": typeof rails_index;
   "rails/paypal": typeof rails_paypal;
   "rails/sim": typeof rails_sim;

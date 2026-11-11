@@ -10,7 +10,7 @@ export type RailName = "paypal" | "sim";
 export const env = {
   /** Public URL of the frontend (PayPal return URLs, invite links). */
   siteUrl(): string {
-    return (process.env.SITE_URL ?? "http://localhost:5173").replace(/\/+$/, "");
+    return (process.env.SITE_URL ?? "http://localhost:3000").replace(/\/+$/, "");
   },
   /** Public URL of this deployment's HTTP actions (provided by Convex). */
   convexSiteUrl(): string {
