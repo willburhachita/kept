@@ -50,6 +50,6 @@ Rename first if you pick a different brand: `node scripts/rename.mjs <NewName>`,
 
 - [ ] Public repo with `LICENSE` (MIT, included)
 - [ ] Judges can run it: [JUDGES.md](../JUDGES.md) + `npm run paypal:check`
-- [ ] Video under 3 minutes (`video/release/kept-demo.mp4`, 2:52)
+- [ ] Demo video on YouTube: https://youtu.be/v9mtU_jdPBI
 - [ ] AI tools used: Claude (`claude-opus-5-5`) for compile, repair, evidence, screening; Claude Code for building
 - [ ] Sandbox PayPal integration (Orders, Payments, Payouts, Webhooks), contract-tested against PayPal's published specs ([12-PAYPAL-VERIFICATION.md](12-PAYPAL-VERIFICATION.md))

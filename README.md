@@ -9,7 +9,7 @@
    → partial capture + payout → signed hash chain + Merkle checkpoints
 ```
 
-> **Judges: [run Kept with your own PayPal sandbox in about 10 minutes](JUDGES.md).** `npm run paypal:check` tells you in seconds whether your keys and app are set up right. The PayPal code path is tested against PayPal's own published API specifications: [how it was verified](docs/12-PAYPAL-VERIFICATION.md).
+> **Demo video: [youtu.be/v9mtU_jdPBI](https://youtu.be/v9mtU_jdPBI).** **Judges: [run Kept with your own PayPal sandbox in about 10 minutes](JUDGES.md).** `npm run paypal:check` tells you in seconds whether your keys and app are set up right. The PayPal code path is tested against PayPal's own published API specifications: [how it was verified](docs/12-PAYPAL-VERIFICATION.md).
 
 | | |
 |---|---|

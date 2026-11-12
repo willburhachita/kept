@@ -13,3 +13,6 @@ next-env.d.ts
 # Demo video: renders and anything derived from the private reference clips
 video/out/
 video/shots/
+
+# Demo videos live on YouTube (https://youtu.be/v9mtU_jdPBI), not in the repo
+video/release/*.mp4

@@ -1,9 +1,9 @@
 # YouTube upload text
 
-Two cuts are in this folder:
+Demo video: **https://youtu.be/v9mtU_jdPBI** (3:26). The video files aren't kept in the repo; rebuild them with `node video/render.mjs --cut short|full` (see `video/BRIEF.md`).
 
-- `kept-demo.mp4`: the submission cut, 2:52. The hackathon asks for a demo video under three minutes, so submit this one.
-- `kept-demo-extended.mp4`: the extended cut, 3:25. It adds an opening joke, the link checker, agent decisions explained, and the developer and tech-stack section. Good for a pinned post, the README or social media.
+- Submission cut (`--cut short`): 2:52.
+- Extended cut (`--cut full`): 3:26. It adds an opening joke, the link checker, agent decisions explained, and the developer and tech-stack section.
 
 ## Title
 
