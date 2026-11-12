@@ -1,0 +1,182 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Reference inspector</title>
+<script>
+  // Breaks each reference clip into a timestamped contact sheet and a spectrogram of its audio.
+  const log = (m) => fetch("/log", { method: "POST", body: String(m) });
+  const save = (name, blob) => fetch("/save/" + name, { method: "POST", body: blob });
+  const seek = (v, t) =>
+    new Promise((r) => {
+      v.onseeked = r;
+      v.currentTime = t;
+    });
+  const load = (i) =>
+    new Promise((res, rej) => {
+      const v = document.createElement("video");
+      v.muted = true;
+      v.preload = "auto";
+      v.src = "/ref/" + i;
+      v.onloadeddata = () => res(v);
+      v.onerror = () => rej(new Error("video " + i + " failed: " + (v.error && v.error.message)));
+    });
+
+  async function sheet(i, v, tStart, tEnd, n, cols, tag) {
+    const tw = 384,
+      th = Math.round((tw * v.videoHeight) / v.videoWidth),
+      rows = Math.ceil(n / cols);
+    const c = document.createElement("canvas");
+    c.width = cols * tw;
+    c.height = rows * th;
+    const g = c.getContext("2d");
+    for (let k = 0; k < n; k++) {
+      const t = tStart + ((tEnd - tStart) * k) / n;
+      await seek(v, Math.min(t, v.duration - 0.02));
+      const x = (k % cols) * tw,
+        y = Math.floor(k / cols) * th;
+      g.drawImage(v, x, y, tw, th);
+      g.fillStyle = "rgba(0,0,0,.75)";
+      g.fillRect(x, y, 66, 20);
+      g.fillStyle = "#fff";
+      g.font = "14px monospace";
+      g.fillText(t.toFixed(2) + "s", x + 4, y + 15);
+    }
+    await save(`ref${i}-${tag}.jpg`, await new Promise((r) => c.toBlob(r, "image/jpeg", 0.82)));
+  }
+
+  // Motion per step: big jumps are hard cuts.
+  async function cuts(v, step) {
+    const c = document.createElement("canvas");
+    c.width = 64;
+    c.height = 36;
+    const g = c.getContext("2d", { willReadFrequently: true });
+    let prev = null;
+    const found = [];
+    for (let t = 0; t < v.duration - 0.05; t += step) {
+      await seek(v, t);
+      g.drawImage(v, 0, 0, 64, 36);
+      const d = g.getImageData(0, 0, 64, 36).data;
+      if (prev) {
+        let s = 0;
+        for (let j = 0; j < d.length; j += 4) s += Math.abs(d[j] - prev[j]) + Math.abs(d[j + 1] - prev[j + 1]) + Math.abs(d[j + 2] - prev[j + 2]);
+        s /= 64 * 36 * 3;
+        if (s > 26) found.push(+t.toFixed(2));
+      }
+      prev = d;
+    }
+    return found;
+  }
+
+  async function audio(i) {
+    const buf = await (await fetch("/ref/" + i)).arrayBuffer();
+    let a;
+    try {
+      a = await new OfflineAudioContext(2, 48000, 48000).decodeAudioData(buf);
+    } catch (e) {
+      return { audio: "none: " + e.message };
+    }
+    const mono = new Float32Array(a.length);
+    for (let c = 0; c < a.numberOfChannels; c++) {
+      const d = a.getChannelData(c);
+      for (let j = 0; j < a.length; j++) mono[j] += d[j] / a.numberOfChannels;
+    }
+    // Spectrogram plus level envelope, and onset times (where sound effects hit).
+    const W = 1800,
+      H = 320,
+      c = document.createElement("canvas");
+    c.width = W;
+    c.height = H + 120;
+    const g = c.getContext("2d");
+    g.fillStyle = "#000";
+    g.fillRect(0, 0, W, H + 120);
+    const N = 1024,
+      hop = Math.max(1, Math.floor((a.length - N) / W));
+    const re = new Float32Array(N),
+      im = new Float32Array(N);
+    const fft = () => {
+      for (let p = 1, j = 0; p < N; p++) {
+        let b = N >> 1;
+        for (; j & b; b >>= 1) j ^= b;
+        j ^= b;
+        if (p < j) {
+          [re[p], re[j]] = [re[j], re[p]];
+          [im[p], im[j]] = [im[j], im[p]];
+        }
+      }
+      for (let l = 2; l <= N; l <<= 1) {
+        const w = (-2 * Math.PI) / l;
+        for (let s = 0; s < N; s += l)
+          for (let k = 0; k < l / 2; k++) {
+            const cs = Math.cos(w * k),
+              sn = Math.sin(w * k),
+              o = s + k + l / 2,
+              tr = re[o] * cs - im[o] * sn,
+              ti = re[o] * sn + im[o] * cs;
+            re[o] = re[s + k] - tr;
+            im[o] = im[s + k] - ti;
+            re[s + k] += tr;
+            im[s + k] += ti;
+          }
+      }
+    };
+    const env = new Float32Array(W);
+    for (let x = 0; x < W; x++) {
+      let e = 0;
+      for (let j = 0; j < N; j++) {
+        const w = 0.5 - 0.5 * Math.cos((2 * Math.PI * j) / N),
+          s = mono[x * hop + j] || 0;
+        e += s * s;
+        re[j] = s * w;
+        im[j] = 0;
+      }
+      env[x] = Math.sqrt(e / N);
+      fft();
+      for (let y = 0; y < H; y++) {
+        const bin = Math.floor(Math.pow(N / 2, 1 - y / H));
+        const m = Math.log10(1e-6 + Math.hypot(re[bin], im[bin]));
+        const v = Math.max(0, Math.min(255, (m + 2.5) * 100));
+        g.fillStyle = `rgb(${v},${v * 0.8},${255 - v * 0.6})`;
+        g.fillRect(x, y, 1, 1);
+      }
+      g.fillStyle = "#6cf";
+      const h = Math.min(110, env[x] * 240);
+      g.fillRect(x, H + 118 - h, 1, h);
+    }
+    const secs = a.length / 48000,
+      onsets = [];
+    g.fillStyle = "#fff";
+    g.font = "13px monospace";
+    for (let s = 0; s < secs; s += Math.max(1, Math.round(secs / 30))) {
+      const x = (s / secs) * W;
+      g.fillRect(x, H, 1, 8);
+      g.fillText(s + "s", x + 2, H + 20);
+    }
+    for (let x = 4; x < W; x++) {
+      const before = (env[x - 4] + env[x - 3] + env[x - 2]) / 3;
+      if (env[x] > 0.03 && env[x] > before * 2.2 && (!onsets.length || (x / W) * secs - onsets[onsets.length - 1] > 0.12)) onsets.push(+((x / W) * secs).toFixed(2));
+    }
+    await save(`ref${i}-audio.jpg`, await new Promise((r) => c.toBlob(r, "image/jpeg", 0.85)));
+    let peak = 0,
+      sum = 0;
+    for (let j = 0; j < mono.length; j++) {
+      peak = Math.max(peak, Math.abs(mono[j]));
+      sum += mono[j] * mono[j];
+    }
+    return { channels: a.numberOfChannels, peak: +peak.toFixed(3), rmsDb: +(10 * Math.log10(sum / mono.length)).toFixed(1), onsets };
+  }
+
+  (async () => {
+    const count = Number(new URLSearchParams(location.search).get("n") || 3);
+    for (let i = 0; i < count; i++) {
+      try {
+        const v = await load(i);
+        await log("info " + JSON.stringify({ i, w: v.videoWidth, h: v.videoHeight, duration: +v.duration.toFixed(2) }));
+        await sheet(i, v, 0, v.duration, 40, 5, "sheet");
+        await log("cuts " + i + " " + JSON.stringify(await cuts(v, 1 / 8)));
+        await log("audio " + i + " " + JSON.stringify(await audio(i)));
+      } catch (e) {
+        await log("error " + i + " " + e.message);
+      }
+    }
+    await fetch("/done", { method: "POST" });
+  })();
+</script>

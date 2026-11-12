@@ -1,0 +1,25 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+@font-face { font-family: Inter; src: url(../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2) format("woff2"); font-weight: 100 900; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1500px; height: 1000px; overflow: hidden; background: #f5f5f5; font-family: Inter; font-weight: 600; letter-spacing: -0.05em; color: #0a0a0a; position: relative; }
+.glow { position: absolute; inset: 0; background: radial-gradient(ellipse 45% 50% at 78% 55%, rgba(0,102,245,.22), transparent 70%); }
+.word { position: absolute; left: 90px; top: 150px; font-size: 300px; line-height: 1; letter-spacing: -0.065em; }
+.dot { display: inline-block; width: 74px; height: 74px; border-radius: 50%; background: #0066f5; margin-left: 18px; box-shadow: 0 0 40px rgba(0,102,245,.5); }
+.tag { position: absolute; left: 98px; top: 500px; width: 720px; font-size: 62px; white-space: nowrap; line-height: 1.06; }
+.tag span { color: #8a8a8a; }
+.steps { position: absolute; left: 98px; bottom: 96px; display: flex; gap: 10px; }
+.steps div { padding: 14px 22px; border-radius: 999px; background: #0a0a0a; color: #fff; font-size: 28px; letter-spacing: -0.02em; }
+.steps div.b { background: #0066f5; }
+.shot { position: absolute; left: 810px; top: 210px; width: 640px; height: 280px; border-radius: 28px; overflow: hidden; box-shadow: 0 60px 120px -30px rgba(0,0,0,.4), 0 0 0 1px rgba(0,0,0,.06); transform: perspective(1600px) rotateY(-12deg) rotateX(4deg); }
+.shot img { position: absolute; width: 1440px; height: 810px; left: -164px; top: -302px; transform-origin: 0 0; }
+.shot2 { position: absolute; left: 840px; top: 560px; width: 600px; height: 172px; border-radius: 22px; overflow: hidden; box-shadow: 0 40px 90px -20px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.06); transform: perspective(1600px) rotateY(-12deg) rotateX(4deg); background: #fff; }
+.shot2 img { position: absolute; width: 1440px; height: 810px; left: -170px; top: -316px; }
+</style></head><body>
+<div class="glow"></div>
+<div class="word">Kept<span class="dot"></span></div>
+<div class="tag">Money moves only when<br><span>a promise is kept.</span></div>
+<div class="steps"><div>Say it</div><div>Prove it</div><div class="b">Hold it</div><div>Keep it</div></div>
+<div class="shot"><img src="../shots/s44_settled.jpg"></div>
+<div class="shot2"><img src="../shots/s32_live.jpg"></div>
+</body></html>

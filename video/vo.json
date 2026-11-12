@@ -1,0 +1,171 @@
+{
+  "voice": "af_heart",
+  "speed": 1.12,
+  "note": "Voiceover lines, synthesized to out/vo/<id>.wav by vo.py. Pauses live in timeline.js, not here.",
+  "lines": [
+    {
+      "id": "p0",
+      "text": "Somewhere right now, someone is typing, any update, for the fourth time this week."
+    },
+    {
+      "id": "p1",
+      "text": "You paid the deposit. The designer replied with a read receipt."
+    },
+    {
+      "id": "p2",
+      "text": "Flip it. You deliver the logo, and the client vanishes faster than free pizza."
+    },
+    {
+      "id": "p3",
+      "text": "The payment worked. The promise didn't."
+    },
+    {
+      "id": "t1",
+      "text": "Meet Kept. Money moves only when a promise is kept."
+    },
+    {
+      "id": "w1",
+      "text": "For freelancers. Plumbers. Suppliers. Anyone who has ever heard, I'll pay you Friday."
+    },
+    {
+      "id": "s1",
+      "text": "Just say the deal, the way you'd text it."
+    },
+    {
+      "id": "s2",
+      "text": "Pay the designer three hundred. A hundred now, two hundred when the logo lands. Refund me if nothing shows in a week."
+    },
+    {
+      "id": "s3",
+      "text": "Claude turns that into promises, and the exact rules that move the money."
+    },
+    {
+      "id": "s4",
+      "text": "Typing something shady, like a release fee to unlock your money? Kept flags the scam before anyone pays."
+    },
+    {
+      "id": "v1",
+      "text": "Then Kept does what no payment app does. It proves the deal."
+    },
+    {
+      "id": "v2",
+      "text": "Every delivery, every deadline, in every order they could happen. Sixty-three possible futures for one plumber visit, checked in two milliseconds."
+    },
+    {
+      "id": "v3",
+      "text": "And it caught a bug a tired lawyer would miss. Deliver on time, and the designer still loses two hundred dollars."
+    },
+    {
+      "id": "v4",
+      "text": "So the rules get repaired. Never your promises. Proved, across every outcome."
+    },
+    {
+      "id": "v5",
+      "text": "And before anyone pays a cent, you can see every way the deal can end."
+    },
+    {
+      "id": "h1",
+      "text": "You both approve the exact same terms. Same fingerprint. Read it out loud, like a secret handshake."
+    },
+    {
+      "id": "h2",
+      "text": "Then the money sits with PayPal. Not with a stranger. Not with us. Honestly, we don't want to hold it."
+    },
+    {
+      "id": "f1",
+      "text": "Under the hood, PayPal authorizes the full amount up front. Each release captures only its slice and pays it out. Refunds simply void the rest."
+    },
+    {
+      "id": "k1",
+      "text": "The logo lands. Maya taps accept."
+    },
+    {
+      "id": "k2",
+      "text": "Three hundred dollars, released exactly as proved. And Sam's phone lights up."
+    },
+    {
+      "id": "k3",
+      "text": "Kept's cut? Seven fifty. Only when money actually moves."
+    },
+    {
+      "id": "x1",
+      "text": "Same engine, different job. The plumber gets forty dollars for showing up, and the rest when the sink stops leaking. No show? Every cent comes home."
+    },
+    {
+      "id": "r1",
+      "text": "Every step is signed and hash-chained. Anyone can check the receipts in their own browser. No account, no trust required."
+    },
+    {
+      "id": "c1",
+      "text": "Now, the fun part. Let's cheat."
+    },
+    {
+      "id": "c2",
+      "text": "Change two hundred to two thousand. Bold. Also, broken."
+    },
+    {
+      "id": "c3",
+      "text": "Cover your tracks and re-hash it? Still broken. Only Kept's key can sign, and every later entry still points at the truth."
+    },
+    {
+      "id": "c4",
+      "text": "Not even we can rewrite it."
+    },
+    {
+      "id": "l1",
+      "text": "And before you pay anyone, paste their link. Look-alike sites get caught, right in your browser."
+    },
+    {
+      "id": "n1",
+      "text": "AI agents are about to spend real money for us. Someone has to make sure they spend it the way we meant."
+    },
+    {
+      "id": "a1",
+      "text": "Now give an AI agent a budget, not your card."
+    },
+    {
+      "id": "a2",
+      "text": "Paper? Paid. Toner? It asks you first. A sixty dollar chair? Denied. Nice try, robot."
+    },
+    {
+      "id": "a3",
+      "text": "A shop you never approved? Denied. A stolen token? Not today."
+    },
+    {
+      "id": "g1",
+      "text": "And every decision comes with a reason, in plain English."
+    },
+    {
+      "id": "b1",
+      "text": "Want stricter rules? Replay every real purchase first. At twenty dollars max, two of these would have been blocked."
+    },
+    {
+      "id": "a4",
+      "text": "Close the budget, and every unused dollar comes home."
+    },
+    {
+      "id": "d1",
+      "text": "Building agents? Kept speaks REST and MCP. One command, and your agent gets a budget it can't blow."
+    },
+    {
+      "id": "d2",
+      "text": "Or embed Kept in your own platform. One API key, a few calls, and every cent is accounted for."
+    },
+    {
+      "id": "t2",
+      "text": "Under the hood: Convex for the backend, PayPal for the money, Claude for the words, and a verifier that runs right in your browser."
+    },
+    {
+      "id": "z1",
+      "text": "Payments that keep their word. For people, and for the agents working for them."
+    },
+    {
+      "id": "e1",
+      "text": "Say it. Prove it. Hold it. Keep it."
+    },
+    {
+      "id": "e2",
+      "text": "Kept."
+    }
+  ]
+}

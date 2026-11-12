@@ -16,11 +16,16 @@
     "dev": "npm run build -w @kept/core && npm run dev -w @kept/backend",
     "rename": "node scripts/rename.mjs",
     "dev:web": "npm run build -w @kept/core && npm run dev -w @kept/web",
-    "build:web": "npm run build -w @kept/web"
+    "build:web": "npm run build -w @kept/web",
+    "test:paypal": "vitest run --project paypal",
+    "paypal:check": "npm run paypal:check -w @kept/backend",
+    "setup:web-env": "node scripts/web-env.mjs"
   },
   "devDependencies": {
     "@edge-runtime/vm": "^5.0.0",
     "@types/node": "^24.0.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "typescript": "~5.9.3",
     "vitest": "^4.0.0"
   },

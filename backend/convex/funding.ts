@@ -24,6 +24,20 @@ export function rethrowRail(e: unknown): never {
   fail("PAYMENT_FAILED", r.message, { paypalCode: r.code });
 }
 
+/**
+ * Spend the authorize/capture idempotency key only once the buyer has approved. A call made before
+ * approval fails with ORDER_NOT_APPROVED, and PayPal may keep that answer under the PayPal-Request-Id
+ * and replay it after the buyer approves, which would leave the payment stuck. Asking first avoids that.
+ */
+export async function requireBuyerApproval(orderId: string): Promise<void> {
+  const rail = getRail();
+  if (rail.name !== "paypal") return;
+  const o = await rail.getOrder(orderId);
+  if (o.status === "APPROVED" || o.status === "COMPLETED") return;
+  if (o.status === "VOIDED") fail("INVALID_STATE", "This PayPal payment was cancelled. Start funding again.");
+  fail("INVALID_STATE", "Approve the payment on PayPal first, then confirm.");
+}
+
 const MAX_ABANDONED_ORDERS = 10;
 
 /** `abandoned` plus `orderId` (when there is one), newest last, capped. */
@@ -210,6 +224,7 @@ export async function confirmFunding(ctx: ActionCtx, userId: Id<"users"> | null,
         currency: cap.currency,
       });
     }
+    await requireBuyerApproval(info.orderId);
     if (info.mode === "authorize") {
       const a = await rail.authorizeOrder(info.orderId, `authz-${info.orderId}`);
       if (a.status !== "CREATED" && a.status !== "PENDING") fail("PAYMENT_FAILED", `PayPal authorization is ${a.status}.`);

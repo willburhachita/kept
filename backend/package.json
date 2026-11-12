@@ -9,7 +9,8 @@
     "deploy": "convex deploy",
     "codegen": "convex codegen",
     "typecheck": "tsc -p convex/tsconfig.json --noEmit",
-    "setup:keys": "node scripts/setup-keys.mjs"
+    "setup:keys": "node scripts/setup-keys.mjs",
+    "paypal:check": "node scripts/paypal-check.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",

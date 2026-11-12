@@ -26,7 +26,7 @@ import { action, internalAction, internalMutation, internalQuery, mutation, quer
 import { aiConfigured, callStructured } from "./ai/claude";
 import { MANDATE_DRAFT_SYSTEM, mandateDraftRequest } from "./ai/screener";
 import { returnStrayFunds } from "./effects";
-import { rethrowRail } from "./funding";
+import { requireBuyerApproval, rethrowRail } from "./funding";
 import { getProfile, isStaff, maskEmail, requireUserId } from "./lib/authz";
 import { env } from "./lib/env";
 import { fail } from "./lib/errors";
@@ -430,6 +430,7 @@ async function fundConfirmFlow(ctx: ActionCtx, userId: Id<"users"> | null, manda
   if (info.status !== "funding") return { status: info.status };
   if (!info.orderId) fail("INVALID_STATE", "No PayPal order to confirm.");
   try {
+    await requireBuyerApproval(info.orderId);
     const a = await getRail().authorizeOrder(info.orderId, `authz-${info.orderId}`);
     if (a.status !== "CREATED" && a.status !== "PENDING") fail("PAYMENT_FAILED", `PayPal authorization is ${a.status}.`);
     return await ctx.runMutation(internal.mandates._activate, {
