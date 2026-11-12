@@ -19,6 +19,20 @@
 | `backend` | Convex backend: auth, engine, PayPal, AI, mandates, REST API, remote MCP |
 | `docs` | start with [docs/00-START-HERE.md](docs/00-START-HERE.md) |
 
+## How Kept uses PayPal, AI and sponsor tools
+
+| Tool | What it does in Kept | Code |
+|---|---|---|
+| **PayPal Orders v2** | Creates the order with `intent: AUTHORIZE`, sends the payer to PayPal to approve, then authorizes, so the money is held by PayPal, not by us | `backend/convex/rails/paypal.ts`, `funding.ts` |
+| **PayPal Payments v2** | Partial captures as each promise is kept, just-in-time reauthorization after the 3-day honor period, void of the rest at settlement, refunds | `rails/paypal.ts`, `effects.ts` |
+| **PayPal Payouts v1** | Pays the payee (and merchants, for agent budgets) by email; idempotent `sender_batch_id` | `rails/paypal.ts`, `effects.ts` |
+| **PayPal Webhooks v1** | Verifies signatures, confirms funding if the buyer closes the tab, freezes on disputes and failed payouts | `routes/paypal.ts`, `webhooks.ts` |
+| **Claude (Anthropic API, `claude-opus-5-5`)** | Writes promises and rules from plain English, repairs rules from verifier counterexamples, examines delivered evidence, screens agent purchases. It never moves money by itself | `backend/convex/ai/`, `compiler.ts`, `evidence.ts`, `agentApi.ts` |
+| **AG Grid** (sponsor) | The editable money trail that re-verifies every hash and signature as you try to cheat, and the agent policy backtest | `web/components/contract/money-trail.tsx`, `web/components/mandate/policy-backtest.tsx` |
+| **Channel3** (sponsor) | Product search for agent budgets: the budget becomes the search filter, and every offer is checked like a purchase | `backend/convex/lib/channel3.ts`, `shopping.ts` |
+
+Every PayPal call is contract-tested against PayPal's published OpenAPI specs ([how](docs/12-PAYPAL-VERIFICATION.md)). Setup and a step-by-step run with your own sandbox: [JUDGES.md](JUDGES.md).
+
 ```bash
 npm install && npm run build && npm test      # 79 tests (core, sdk, mcp, backend lifecycles, PayPal contract)
 npm run test:paypal                           # just the PayPal tests against PayPal's published specs
